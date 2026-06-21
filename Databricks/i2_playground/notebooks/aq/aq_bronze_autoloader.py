@@ -1,5 +1,7 @@
+import datetime as dt
+
 dbutils.widgets.text("location_ids", "")
-dbutils.widgets.text("start_year",   datetime.now().year - 1)
+dbutils.widgets.text("start_year",   dt.datetime.now().year - 1)
 dbutils.widgets.text("catalog_name", "main")
 dbutils.widgets.text("schema_name",  "openaq")
 dbutils.widgets.text("checkpoint_base", "/Volumes/main/openaq/checkpoints")
@@ -10,9 +12,7 @@ catalog_name = dbutils.widgets.get("catalog_name")
 schema_name  = dbutils.widgets.get("schema_name")
 checkpoint_base = dbutils.widgets.get("checkpoint_base")
 
-from datetime import datetime
-end_year   = datetime.now().year
-year_glob  = "{" + ",".join(str(y) for y in range(start_year, end_year + 1)) + "}"
+year_glob  = "{" + ",".join(str(y) for y in range(start_year, dt.datetime.now().year + 1)) + "}"
 location_glob = "{" + ",".join(str(lid) for lid in location_ids) + "}"
 source_path = f"s3://openaq-data-archive/records/csv.gz/locationid={location_glob}/year={year_glob}/"
 

@@ -5,6 +5,7 @@ from pyspark.sql import functions as F
 
 @pytest.fixture(scope="session")
 def spark():
+    """Create a SparkSession for testing."""
     return (
         SparkSession.builder.master("local[2]")
         .appName("aq_pipeline_tests")
@@ -13,7 +14,7 @@ def spark():
 
 
 def test_silver_clean_transforms(spark):
-    # Sample raw (bronze) input matching columns used in notebook
+    """Sample raw (bronze) input matching columns used in notebook and validate silver transformations.""" 
     raw = [
         (100, 100, "2024-01-01 01:00:00", "10.5", "pm25", "ug/m3", "Loc A", 1.0, 2.0),
         (100, 100, "2024-01-01 01:00:00", "10.5", "pm25", "ug/m3", "Loc A", 1.0, 2.0),  # duplicate
@@ -82,7 +83,7 @@ def test_silver_clean_transforms(spark):
 
 
 def test_gold_daily_summary_aggregations(spark):
-    # Build a small 'silver' DataFrame to validate aggregations and category columns
+    """Create sample silver input and validate gold daily summary aggregations and derived columns."""
     rows = [
         # location_id, location_name, pollutant, unit, latitude, longitude, measured_at, measured_date
         (100, "Loc A", "pm25", "ug/m3", 1.0, 2.0, "2024-01-01 01:00:00", "2024-01-01", 2024, 1, 10.0),

@@ -1,0 +1,7 @@
+[tool.pylint.typecheck]
+additional-builtins = ["dbutils", "spark", "pytest"]
+
+[tool.pyright]
+reportUndefinedVariable = "none"
+reportMissingImports = "none"       # Prevents missing PySpark library errors
+reportGeneralTypeIssues = "none"

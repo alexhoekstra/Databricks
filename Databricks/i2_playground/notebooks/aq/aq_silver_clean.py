@@ -1,3 +1,5 @@
+from pyspark.sql import functions as F
+
 dbutils.widgets.text("catalog_name", "main")
 dbutils.widgets.text("schema_name", "openaq")
 dbutils.widgets.text("openaq_location_ids", "")
@@ -5,8 +7,6 @@ dbutils.widgets.text("openaq_location_ids", "")
 catalog_name = dbutils.widgets.get("catalog_name")
 schema_name  = dbutils.widgets.get("schema_name")
 location_ids = [int(x) for x in dbutils.widgets.get("openaq_location_ids").split(",")]
-
-from pyspark.sql import functions as F
 
 bronze = spark.table(f"{catalog_name}.{schema_name}.bronze_openaq_raw")
 

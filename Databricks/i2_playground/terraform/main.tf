@@ -17,19 +17,6 @@ terraform {
 # Provider authenticates automatically from DATABRICKS_HOST and DATABRICKS_TOKEN environment variables
 provider "databricks" {}
 
-# access our locally deployed vault instance
-# TODO: Update address and token to .env or other secret method
-provider "vault" {
-  address = "http://vault:8200"
-  token = "root"
-}
-
-# This resource is fetched dynamically and never saved to the .tfstate file
-ephemeral "vault_kv_secret_v2" "databricks_secrets" {
-  mount = "kv"
-  name  = "databricks"
-}
-
 resource "databricks_directory" "shared_dir" {
   path = "/Shared/Queries"
 }

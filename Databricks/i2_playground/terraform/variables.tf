@@ -10,8 +10,14 @@ variable "catalog_name" {
   default     = "main"
 }
 
-variable "schema_name" {
-  description = "Schema (database) name under the catalog"
+variable "aq_schema_name" {
+  description = "Air Quality Schema (database) name under the catalog"
   type        = string
   default     = "openaq"
+}
+
+variable "worldcup_schema_name" {
+  description = "World Cup Schema (database) name under the catalog"
+  type        = string
+  default     = "worldcup"
 }

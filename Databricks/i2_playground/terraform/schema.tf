@@ -10,7 +10,7 @@ data "databricks_sql_warehouse" "default" {
 # Create the schema if it doesn't exist
 resource "databricks_schema" "openaq" {
   catalog_name = var.catalog_name
-  name         = var.schema_name
+  name         = var.aq_schema_name
   comment      = "OpenAQ air quality data — Bronze/Silver/Gold medallion"
   force_destroy = true
 }
@@ -23,9 +23,28 @@ resource "databricks_volume" "openaq_checkpoints" {
   comment      = "Checkpoint and schema hint storage for OpenAQ Auto Loader"
 }
 
+
+#### World Cup Schemas ####
+
+# Create the schema if it doesn't exist
+resource "databricks_schema" "worldcup" {
+  catalog_name = var.catalog_name
+  name         = var.worldcup_schema_name
+  comment      = "World Cup data — Bronze/Silver/Gold medallion"
+  force_destroy = true
+}
+
+resource "databricks_volume" "worldcup_landing" {
+  catalog_name = var.catalog_name
+  schema_name  = databricks_schema.worldcup.name
+  name         = "landing"
+  volume_type  = "MANAGED"
+  comment      = "Landing zone for World Cup data"
+}
+
 #### Initial Testing schemas ####
 
-# This calls the Databricks API to create a table using SQL. Since we are free tier, creating catalogs
+/* # This calls the Databricks API to create a table using SQL. Since we are free tier, creating catalogs
 # isn't available since we dont have external storage configured
 resource "null_resource" "trigger_query_run" {
 
@@ -58,4 +77,4 @@ resource "databricks_schema" "test_donut" {
   
   # Safely drops underlying tables/views if you run terraform destroy
   force_destroy = true 
-}
+} */

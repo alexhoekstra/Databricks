@@ -18,3 +18,10 @@ resource "databricks_notebook" "gold_openaq" {
   content_base64 = filebase64("${path.module}/../notebooks/aq/aq_gold_daily_summary.py")
   depends_on = [databricks_schema.openaq]
 }
+
+resource "databricks_notebook" "worldcup_bronze_ingest" {
+  path     = "/Shared/openaq/worldcup_bronze_ingest"
+  language = "PYTHON"
+  content_base64 = filebase64("${path.module}/../notebooks/world_cup/world_cup.ipynb")
+  depends_on = [databricks_schema.worldcup]
+}

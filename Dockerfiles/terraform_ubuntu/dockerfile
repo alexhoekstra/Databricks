@@ -1,0 +1,30 @@
+# Use the latest official Ubuntu base image
+FROM ubuntu:latest
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install core dependencies needed to verify and add the HashiCorp repository
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    software-properties-common \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and install the official HashiCorp GPG key
+RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+# Add the official HashiCorp Debian repository to apt sources
+RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+
+# Update the package lists and install Terraform
+RUN apt-get update && apt-get install -y \
+    terraform \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the default working directory inside the container
+WORKDIR /workspace
+
+# Verify the installation and print the version on container startup
+CMD ["terraform", "--version"]

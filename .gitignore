@@ -1,0 +1,30 @@
+# Local environment variables
+.env
+.env.local
+.env.*.local
+
+# Do NOT ignore your template file if you have one
+!.env.example
+
+# Terraform
+
+# Local Terraform directories anywhere in the project
+**/.terraform/
+
+# Terraform state files anywhere
+**/*.tfstate
+**/*.tfstate.*
+
+# Crash logs anywhere
+**/crash.log
+**/crash.*.log
+
+# Overrides anywhere
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json
+
+# Variables files anywhere
+**/*.tfvars
+**/*.tfvars.json

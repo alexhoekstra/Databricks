@@ -1,0 +1,38 @@
+dbutils.widgets.text("catalog_name", "main")
+dbutils.widgets.text("schema_name",  "openaq")
+
+catalog_name = dbutils.widgets.get("catalog_name")
+schema_name  = dbutils.widgets.get("schema_name")
+
+from pyspark.sql import functions as F
+
+silver = spark.table(f"{catalog_name}.{schema_name}.silver_openaq_clean")
+
+gold_df = (
+    silver
+    .groupBy("location_id", "location_name", "pollutant", "unit",
+             "measured_date", "measured_year", "measured_month")
+    .agg(
+        F.round(F.avg("value"),    4).alias("daily_avg"),
+        F.round(F.max("value"),    4).alias("daily_max"),
+        F.round(F.min("value"),    4).alias("daily_min"),
+        F.round(F.stddev("value"), 4).alias("daily_stddev"),
+        F.count("value")             .alias("reading_count")
+    )
+    .withColumn("pm25_category",
+        F.when(F.col("pollutant") != "pm25", F.lit(None))
+         .when(F.col("daily_avg") <= 12.0,  F.lit("Good"))
+         .when(F.col("daily_avg") <= 35.4,  F.lit("Moderate"))
+         .when(F.col("daily_avg") <= 55.4,  F.lit("Unhealthy for Sensitive Groups"))
+         .when(F.col("daily_avg") <= 150.4, F.lit("Unhealthy"))
+         .otherwise(F.lit("Very Unhealthy"))
+    )
+)
+
+(
+    gold_df.write
+    .format("delta")
+    .mode("overwrite")
+    .partitionBy("measured_year", "measured_month")
+    .saveAsTable(f"{catalog_name}.{schema_name}.gold_openaq_daily")
+)

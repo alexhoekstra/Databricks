@@ -30,78 +30,9 @@ ephemeral "vault_kv_secret_v2" "databricks_secrets" {
   name  = "databricks"
 }
 
-# This pulls default free tier warehouse compute instance
-/* data "databricks_sql_warehouse" "default" {
-  name = "Serverless Starter Warehouse"
-} */
-
-# This calls the Databricks API to create a table using SQL. Since we are free tier, creating catalogs
-# isn't available since we dont have external storage configured
-resource "null_resource" "trigger_query_run" {
-
-  # Using local exec to run a curl command to access the databricks API 
-  # Incorporating the Vault ephemeral secrets here too
-  provisioner "local-exec" {
-    command = <<EOT
-      curl --request POST \
-          --url "${ephemeral.vault_kv_secret_v2.databricks_secrets.data["host"]}/api/2.0/sql/statements" \
-          --header "Authorization: Bearer ${ephemeral.vault_kv_secret_v2.databricks_secrets.data["token"]}" \
-          --header "Content-Type: application/json" \
-          --data '{"warehouse_id": "${data.databricks_sql_warehouse.default.id}", "statement": "CREATE CATALOG IF NOT EXISTS test_donut;", "wait_timeout": "10s", "on_wait_timeout": "CONTINUE"}'
-    EOT
-  }
-} 
-
-# Using a time delay to ensure the backend creates the catalog before building schemas !!!! CAN PROBABLY REMOVE!
-resource "time_sleep" "wait_for_catalog" {
-  depends_on      = [null_resource.trigger_query_run]
-  create_duration = "10s"
-}
-
-# Create the schema inside the catalog we just created 
-# TODO update to use variables for catalog name, name and comment
-resource "databricks_schema" "test_donut" {
-  depends_on    = [time_sleep.wait_for_catalog]
-  catalog_name  = "test_donut" # Points to the catalog we just created
-  name          = "testaroni"
-  comment       = "Schema for test donut managed via Terraform"
-  
-  # Safely drops underlying tables/views if you run terraform destroy
-  force_destroy = true 
-}
-
 resource "databricks_directory" "shared_dir" {
   path = "/Shared/Queries"
 }
-
-# Query for testing the alert
-resource "databricks_query" "test_query" {
-  warehouse_id = data.databricks_sql_warehouse.default.id
-  display_name = "Test Query"
-  query_text   = "SELECT 42 as value"
-  parent_path  = databricks_directory.shared_dir.path
-}
-
-#test alert
-resource "databricks_alert" "alert" {
-  query_id     = databricks_query.test_query.id
-  display_name = "Test Query Threshold alert"
-  parent_path  = databricks_directory.shared_dir.path
-  condition {
-    op = "GREATER_THAN"
-    operand {
-      column {
-        name = "value"
-      }
-    }
-    threshold {
-      value {
-        double_value = 42
-      }
-    }
-  }
-}
-
 
 
 ################### Things that didn't work ###################
@@ -135,7 +66,7 @@ resource "databricks_catalog" "sandbox" {
   }
 } */
 
-/* # 2. Execute a SQL command to bypass the missing root metastore URL error
+/* # Execute a SQL command to bypass the missing root metastore URL error
 resource "databricks_query" "create_test_pizza_catalog_query" {
   warehouse_id  = data.databricks_sql_warehouse.default.id
   display_name  = "Create test_pizza Catalog"
@@ -172,7 +103,7 @@ resource "null_resource" "trigger_query_run" {
 
 
 ################## This block would let you grab the catalog ####################
-/* # 1. Import the UI-created catalog into your Terraform state file tracking
+/* # Import the UI-created catalog into your Terraform state file tracking
 import {
   to = databricks_catalog.test_pizza
   id = "test_pizza"

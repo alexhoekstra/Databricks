@@ -1,5 +1,5 @@
 dbutils.widgets.text("location_ids", "")
-dbutils.widgets.text("start_year",   "2023")
+dbutils.widgets.text("start_year",   datetime.now().year - 1)
 dbutils.widgets.text("catalog_name", "main")
 dbutils.widgets.text("schema_name",  "openaq")
 dbutils.widgets.text("checkpoint_base", "/Volumes/main/openaq/checkpoints")

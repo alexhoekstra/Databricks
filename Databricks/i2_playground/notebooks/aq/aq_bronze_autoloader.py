@@ -1,3 +1,7 @@
+"""This notebook ingests OpenAQ data from S3 using AutoLoader and writes it to 
+a Delta Lake table in append mode. The source data is partitioned by location ID and year, 
+and the notebook is parameterized to allow for flexible ingestion based on user input."""
+
 import datetime as dt
 
 dbutils.widgets.text("location_ids", "")
@@ -12,9 +16,9 @@ catalog_name = dbutils.widgets.get("catalog_name")
 schema_name  = dbutils.widgets.get("schema_name")
 checkpoint_base = dbutils.widgets.get("checkpoint_base")
 
-year_glob  = "{" + ",".join(str(y) for y in range(start_year, dt.datetime.now().year + 1)) + "}"
-location_glob = "{" + ",".join(str(lid) for lid in location_ids) + "}"
-source_path = f"s3://openaq-data-archive/records/csv.gz/locationid={location_glob}/year={year_glob}/"
+YEAR_GLOB  = "{" + ",".join(str(y) for y in range(start_year, dt.datetime.now().year + 1)) + "}"
+LOCATION_GLOB = "{" + ",".join(str(lid) for lid in location_ids) + "}"
+SOURCE_PATH = f"s3://openaq-data-archive/records/csv.gz/locationid={LOCATION_GLOB}/year={YEAR_GLOB}/"
 
 bronze_df = (
     spark.readStream
@@ -26,7 +30,7 @@ bronze_df = (
     .option("header", "true")
     .option("fs.s3a.aws.credentials.provider",
             "org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider")
-    .load(source_path)
+    .load(SOURCE_PATH)
 )
 
 (

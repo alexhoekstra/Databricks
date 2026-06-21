@@ -1,10 +1,12 @@
+""" Unit tests for AQ pipeline transformations."""
+
 import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 
 @pytest.fixture(scope="session")
-def spark():
+def spark_session_fixture():
     """Create a SparkSession for testing."""
     return (
         SparkSession.builder.master("local[2]")
@@ -13,12 +15,13 @@ def spark():
     )
 
 
-def test_silver_clean_transforms(spark):
-    """Sample raw (bronze) input matching columns used in notebook and validate silver transformations.""" 
+def test_silver_clean_transforms(spark_session_fixture):
+    """Sample raw (bronze) input matching columns used in 
+    notebook and validate silver transformations.""" 
     raw = [
         (100, 100, "2024-01-01 01:00:00", "10.5", "pm25", "ug/m3", "Loc A", 1.0, 2.0),
         (100, 100, "2024-01-01 01:00:00", "10.5", "pm25", "ug/m3", "Loc A", 1.0, 2.0),  # duplicate
-        (100, 100, "2024-01-02 02:00:00", None, "pm25", "ug/m3", "Loc A", 1.0, 2.0),     # null value
+        (100, 100, "2024-01-02 02:00:00", None, "pm25", "ug/m3", "Loc A", 1.0, 2.0),    # null value
         (200, 200, "2024-01-03 03:00:00", "-5.0", "pm25", "ug/m3", "Loc B", 3.0, 4.0),  # negative
         (300, 300, "2024-01-04 04:00:00", "2.25", "relativehumidity", "%", "Loc C", 5.0, 6.0),
     ]
@@ -35,7 +38,7 @@ def test_silver_clean_transforms(spark):
         "lon",
     ]
 
-    df = spark.createDataFrame(raw, schema=cols)
+    df = spark_session_fixture.createDataFrame(raw, schema=cols)
 
     # apply same transformations as aq_silver_clean.py
     location_ids = [100, 300]
@@ -82,14 +85,18 @@ def test_silver_clean_transforms(spark):
     assert expected_cols.issubset(cols_out)
 
 
-def test_gold_daily_summary_aggregations(spark):
-    """Create sample silver input and validate gold daily summary aggregations and derived columns."""
+def test_gold_daily_summary_aggregations(spark_session_fixture):
+    """Create sample silver input and validate gold 
+    daily summary aggregations and derived columns."""
     rows = [
-        # location_id, location_name, pollutant, unit, latitude, longitude, measured_at, measured_date
-        (100, "Loc A", "pm25", "ug/m3", 1.0, 2.0, "2024-01-01 01:00:00", "2024-01-01", 2024, 1, 10.0),
-        (100, "Loc A", "pm25", "ug/m3", 1.0, 2.0, "2024-01-01 05:00:00", "2024-01-01", 2024, 1, 20.0),
-        (100, "Loc A", "relativehumidity", "%", 1.0, 2.0, "2024-01-01 06:00:00", "2024-01-01", 2024, 1, 65.0),
-        (200, "Loc B", "pm25", "ug/m3", 3.0, 4.0, "2024-01-02 02:00:00", "2024-01-02", 2024, 1, 40.0),
+        (100, "Loc A", "pm25", "ug/m3", 1.0, 2.0, 
+         "2024-01-01 01:00:00", "2024-01-01", 2024, 1, 10.0),
+        (100, "Loc A", "pm25", "ug/m3", 1.0, 2.0, 
+         "2024-01-01 05:00:00", "2024-01-01", 2024, 1, 20.0),
+        (100, "Loc A", "relativehumidity", "%", 1.0, 2.0, 
+         "2024-01-01 06:00:00", "2024-01-01", 2024, 1, 65.0),
+        (200, "Loc B", "pm25", "ug/m3", 3.0, 4.0, 
+         "2024-01-02 02:00:00", "2024-01-02", 2024, 1, 40.0),
     ]
 
     cols = [
@@ -106,7 +113,7 @@ def test_gold_daily_summary_aggregations(spark):
         "value",
     ]
 
-    silver = spark.createDataFrame(rows, schema=cols)
+    silver = spark_session_fixture.createDataFrame(rows, schema=cols)
 
     gold_df = (
         silver

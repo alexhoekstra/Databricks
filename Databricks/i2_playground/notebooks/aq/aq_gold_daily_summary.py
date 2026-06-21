@@ -1,10 +1,12 @@
+"""AQ Gold Daily Summary Notebook"""
+
+from pyspark.sql import functions as F
+
 dbutils.widgets.text("catalog_name", "main")
 dbutils.widgets.text("schema_name", "openaq")
 
 catalog_name = dbutils.widgets.get("catalog_name")
 schema_name  = dbutils.widgets.get("schema_name")
-
-from pyspark.sql import functions as F
 
 silver = spark.table(f"{catalog_name}.{schema_name}.silver_openaq_clean")
 

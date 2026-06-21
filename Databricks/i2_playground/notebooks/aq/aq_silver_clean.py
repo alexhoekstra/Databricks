@@ -1,3 +1,5 @@
+"""AQ Silver Clean Notebook"""
+
 from pyspark.sql import functions as F
 
 dbutils.widgets.text("catalog_name", "main")

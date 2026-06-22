@@ -5,7 +5,7 @@ and the notebook is parameterized to allow for flexible ingestion based on user 
 import datetime as dt
 
 dbutils.widgets.text("location_ids", "")
-dbutils.widgets.text("start_year",   dt.datetime.now().year - 1)
+dbutils.widgets.text("start_year", str(dt.datetime.now().year - 1))
 dbutils.widgets.text("catalog_name", "main")
 dbutils.widgets.text("schema_name",  "openaq")
 dbutils.widgets.text("checkpoint_base", "/Volumes/main/openaq/checkpoints")

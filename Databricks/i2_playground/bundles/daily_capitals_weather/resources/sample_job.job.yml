@@ -1,0 +1,54 @@
+# A sample job for daily_capitals_weather.
+
+resources:
+  jobs:
+    daily_capitals_weather_job:
+      name: daily_capitals_weather_job
+
+      trigger:
+        periodic:
+          interval: 1
+          unit: DAYS
+
+      #email_notifications:
+      #  on_failure:
+      #    - your_email@example.com
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+
+      tasks:
+        - task_key: notebook_task
+          notebook_task:
+            notebook_path: ../src/daily_capitals_weather_notebook.ipynb
+          environment_key: default
+        - task_key: python_wheel_task
+          depends_on:
+            - task_key: notebook_task
+          python_wheel_task:
+            package_name: daily_capitals_weather
+            entry_point: main
+            parameters:
+              - "--catalog"
+              - "${var.catalog}"
+              - "--schema"
+              - "${var.schema}"
+          environment_key: default
+        - task_key: refresh_pipeline
+          depends_on:
+            - task_key: notebook_task
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.daily_capitals_weather_etl.id}
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+            dependencies:
+              # By default we just include the .whl file generated for the daily_capitals_weather package.
+              - ../dist/*.whl
+              - kaggle
+              - kagglehub

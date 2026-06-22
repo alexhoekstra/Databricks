@@ -20,8 +20,7 @@ resource "databricks_notebook" "gold_openaq" {
 }
 
 resource "databricks_notebook" "worldcup_bronze_ingest" {
+  source = "${path.module}/../notebooks/world_cup/world_cup.ipynb"
   path     = "/Shared/openaq/worldcup_bronze_ingest"
-  language = "PYTHON"
-  content_base64 = filebase64("${path.module}/../notebooks/world_cup/world_cup.ipynb")
   depends_on = [databricks_schema.worldcup]
 }

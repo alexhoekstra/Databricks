@@ -14,10 +14,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint
+        pip install pylint==3.3.7
         pip install pylint-pytest
         pip install pyspark
         pip install pytest
     - name: Analysing the code with pylint
       run: |
-        pylint --fail-under=8.0 $(git ls-files '*.py')
+        pylint --rcfile=pyproject.toml --fail-under=8.0 $(git ls-files '*.py')

@@ -74,7 +74,7 @@ resource "databricks_job" "fifa_ingestion" {
         environment_key = "default"
         spec {
             client       = "2" 
-            dependencies = []
+            dependencies = ["kagglehub"]
         }
     }
 

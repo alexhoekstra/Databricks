@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+.venv
 
 # Do NOT ignore your template file if you have one
 !.env.example

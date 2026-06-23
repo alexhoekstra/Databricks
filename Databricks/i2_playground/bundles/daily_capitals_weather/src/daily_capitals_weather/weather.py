@@ -3,7 +3,6 @@ and load it into a Spark DataFrame."""
 import kagglehub
 from kagglehub import KaggleDatasetAdapter
 from pyspark.sql import DataFrame
-from pyspark.sql import functions as F
 from databricks.sdk.runtime import spark
 
 
@@ -21,10 +20,5 @@ def get_weather_data() -> DataFrame:
     # Convert the Pandas DataFrame to a Spark DataFrame
     df_raw = spark.createDataFrame(df_pandas)
 
-    # create bronze dataframe by adding ingestion metadata
-    df_bronze = (
-        df_raw
-        .withColumn("_ingested_at",    F.current_timestamp())
-        .withColumn("_ingestion_date", F.to_date(F.current_timestamp()))
-    )
-    return df_bronze
+
+    return df_raw

@@ -8,7 +8,7 @@ resources:
       schema: ${var.schema}
       serverless: true
       root_path: "../src/daily_capitals_weather_etl"
-
+      
       libraries:
         - glob:
             include: ../src/daily_capitals_weather_etl/transformations/**

@@ -13,7 +13,7 @@ artifacts:
     build: uv build --wheel
 
 permissions:
-  - service_principal_name: Admin SP
+  - service_principal_name: 5665f402-8939-41f9-b019-0b5554ac2044
     level: CAN_MANAGE
 
 # Variable declarations. These variables are assigned in the dev/prod targets below.
@@ -48,5 +48,5 @@ targets:
     permissions:
       - user_name: alex.hoekstra618+databricks@gmail.com
         level: CAN_MANAGE
-      - service_principal_name: Admin SP
+      - service_principal_name: 5665f402-8939-41f9-b019-0b5554ac2044
         level: CAN_MANAGE

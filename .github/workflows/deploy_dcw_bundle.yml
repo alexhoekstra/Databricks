@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "Databricks/i2_playground/bundles/daily_capitals_weather/**"
+      - "Databricks/bundles/daily_capitals_weather/**"
 
 jobs:
   deploy:
@@ -31,6 +31,6 @@ jobs:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
           DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
-        working-directory: Databricks/i2_playground/bundles/daily_capitals_weather
+        working-directory: Databricks/bundles/daily_capitals_weather
         run: |
           databricks bundle deploy --target prod

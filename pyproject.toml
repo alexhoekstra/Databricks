@@ -7,5 +7,5 @@ reportMissingImports = "none"       # Prevents missing PySpark library errors
 reportGeneralTypeIssues = "none"
 
 [tool.pylint.main]
-ignore-paths = ["^Databricks/i2_playground/bundles/my_first_bundle/.*", "^Databricks/i2_playground/bundles/daily_capitals_weather/tests/.*" ]
+ignore-paths = ["^Databricks/bundles/my_first_bundle/.*", "^Databricks/bundles/daily_capitals_weather/tests/.*" ]
 ignored-modules = ["databricks.sdk.runtime", "dbutils", "spark", "kagglehub", "daily_capitals_weather.taxis", "daily_capitals_weather"]

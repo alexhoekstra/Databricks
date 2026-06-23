@@ -42,3 +42,12 @@ resource "vault_kv_secret_v2" "admin_sp_secret" {
   name      = "databricks"
   data_json = jsonencode(local.merged_secrets)
 }
+
+resource "databricks_grants" "main_catalog" {
+  catalog = "main"
+
+  grant {
+    principal  = databricks_service_principal.admin_sp.application_id #application ID since it uses OAUTH
+    privileges = ["USE CATALOG", "USE SCHEMA", "CREATE SCHEMA", "CREATE TABLE", "CREATE VOLUME", "MODIFY", "EXECUTE"]
+  }
+}

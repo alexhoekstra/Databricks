@@ -12,6 +12,10 @@ artifacts:
     type: whl
     build: uv build --wheel
 
+permissions:
+  - service_principal_name: Admin SP
+    level: CAN_MANAGE
+
 # Variable declarations. These variables are assigned in the dev/prod targets below.
 variables:
   catalog:
@@ -43,4 +47,6 @@ targets:
       schema: prod
     permissions:
       - user_name: alex.hoekstra618+databricks@gmail.com
+        level: CAN_MANAGE
+      - service_principal_name: Admin SP
         level: CAN_MANAGE

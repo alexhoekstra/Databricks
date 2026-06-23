@@ -23,7 +23,7 @@ resource "databricks_job" "openaq_pipeline" {
             notebook_path = databricks_notebook.bronze_openaq.path
             base_parameters = {
                 location_ids = join(",", [for id in var.openaq_location_ids : tostring(id)])
-                start_year   = "2023"
+                start_year   = "2025"
                 catalog_name = var.catalog_name
                 schema_name  = var.aq_schema_name
                 checkpoint_base = "/Volumes/${var.catalog_name}/${var.aq_schema_name}/checkpoints"

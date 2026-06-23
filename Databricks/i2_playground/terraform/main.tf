@@ -5,11 +5,11 @@ terraform {
   required_providers {
     databricks = {
       source  = "databricks/databricks"
-      # Not specifying a version so we pull the latest 
+      # Not specifying a version so we pull the latest in prod you should pin to a specific version 
     }
     vault = {
       source  = "hashicorp/vault"
-      # Not specifying a version so we pull the latest 
+      # Not specifying a version so we pull the latest in prod you should pin to a specific version 
     }
   }
 }

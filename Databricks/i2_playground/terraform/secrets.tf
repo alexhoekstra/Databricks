@@ -6,6 +6,7 @@ provider "vault" {
 }
 
 # This resource is fetched dynamically and never saved to the .tfstate file
+# TODO : update to Ephemeral KVV2 Secret resource `vault_kv_secret_v2` instead
 data "vault_kv_secret_v2" "databricks_secrets" {
   mount = "kv"
   name  = "databricks"

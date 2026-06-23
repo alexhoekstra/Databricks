@@ -30,6 +30,21 @@ resource "databricks_job" "openaq_pipeline" {
             }
         }
     }
+    # Gold needed to come first before silver because terraform still cares about block ordering, even if the depends on key preserves execution order
+    # By ordering it this way, it will still execute, but stop continually "modifying" the resource
+    task {
+        task_key        = "gold_summary"
+        environment_key = "default"
+        depends_on { task_key = "silver_clean" }
+
+        notebook_task {
+            notebook_path = databricks_notebook.gold_openaq.path
+            base_parameters = {
+            catalog_name = var.catalog_name
+            schema_name  = var.aq_schema_name
+            }
+        }
+    }
 
     task {
         task_key        = "silver_clean"
@@ -42,20 +57,6 @@ resource "databricks_job" "openaq_pipeline" {
             catalog_name        = var.catalog_name
             schema_name         = var.aq_schema_name
             openaq_location_ids = join(",", [for id in var.openaq_location_ids : tostring(id)])
-            }
-        }
-    }
-
-    task {
-        task_key        = "gold_summary"
-        environment_key = "default"
-        depends_on { task_key = "silver_clean" }
-
-        notebook_task {
-            notebook_path = databricks_notebook.gold_openaq.path
-            base_parameters = {
-            catalog_name = var.catalog_name
-            schema_name  = var.aq_schema_name
             }
         }
     }

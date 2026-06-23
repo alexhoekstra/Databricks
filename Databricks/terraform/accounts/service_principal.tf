@@ -21,7 +21,7 @@ resource "databricks_group_member" "sp_admin_membership" {
 resource "databricks_git_credential" "sp_git_credential" {
   git_provider          = "gitHub"
   git_username          = "Alex's Databricks Admin SP"
-  personal_access_token = sensitive(data.vault_kv_secret_v2.databricks_secrets.data["GITHUB_ADMIN_PAT"])
+  personal_access_token = sensitive(module.vault_secrets.secrets["GITHUB_ADMIN_PAT"])
   principal_id          = databricks_service_principal.admin_sp.id
 }
 
@@ -46,7 +46,7 @@ resource "databricks_grants" "main_catalog" {
 # This is a quick and dirty way to merge the existing secrets with the new ones.
 locals {
   # Safely read existing keys — falls back to empty map if secret doesn't exist yet
-  existing_secrets = try(data.vault_kv_secret_v2.databricks_secrets.data, {})
+  existing_secrets = try(module.vault_secrets.secrets, {})
 
   # Merge: existing keys are preserved, new SP keys are added/updated
   merged_secrets = merge(local.existing_secrets, {

@@ -14,9 +14,6 @@ terraform {
   }
 }
 
-# Provider authenticates automatically from DATABRICKS_HOST and DATABRICKS_TOKEN environment variables
-provider "databricks" {}
-
 resource "databricks_directory" "shared_dir" {
   path = "/Shared/Queries"
 }

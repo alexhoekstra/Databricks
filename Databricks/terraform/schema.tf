@@ -42,10 +42,25 @@ resource "databricks_volume" "worldcup_landing" {
   comment      = "Landing zone for World Cup data"
 }
 
+
 #### Initial Testing schemas ####
 
-/* # This calls the Databricks API to create a table using SQL. Since we are free tier, creating catalogs
+/* 
+
+# Error terraform gives is this:
+# cannot create catalog: Metastore storage root URL does not exist. Default Storage is enabled in your account. You can use the UI to create a new catalog using Default Storage
+resource "databricks_catalog" "sandbox" {
+  name    = "sandbox"
+  comment = "this catalog is managed by terraform"
+  properties = {
+    purpose = "testing"
+  }
+}
+
+
+# Workaround for above: This calls the Databricks API to create a table using SQL. Since we are free tier, creating catalogs
 # isn't available since we dont have external storage configured
+# databricks_catalog is the correct way to do this, however free tier doesn't let me do it
 resource "null_resource" "trigger_query_run" {
 
   # Using local exec to run a curl command to access the databricks API 
@@ -61,7 +76,7 @@ resource "null_resource" "trigger_query_run" {
   }
 } 
 
-# Using a time delay to ensure the backend creates the catalog before building schemas !!!! CAN PROBABLY REMOVE!
+# Using a time delay to ensure the backend creates the catalog before building schemas
 resource "time_sleep" "wait_for_catalog" {
   depends_on      = [null_resource.trigger_query_run]
   create_duration = "10s"

@@ -5,8 +5,5 @@ output "job_url" {
 
 output "bronze_notebook_path" {
   value = databricks_notebook.bronze_openaq.path
-}
-
-output "warehouse_id" {
-  value = data.databricks_sql_warehouse.default.id
+  description = "Bronze Notebook path"
 }

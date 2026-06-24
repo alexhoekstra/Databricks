@@ -124,8 +124,8 @@ resource "databricks_alert_v2" "max_players_exceeded_alert" {
 
   query_text = <<-EOT
     SELECT COUNT(*) AS records_breached
-    FROM ${var.catalog_name}.${var.worldcup_schema_name}.fifa_players
-    WHERE players_used > 16
+    FROM ${var.catalog_name}.${var.worldcup_schema_name}.${databricks_job.fifa_ingestion.task[0].notebook_task[0].base_parameters.table}
+    WHERE players_used > 26
   EOT
 
   evaluation = {

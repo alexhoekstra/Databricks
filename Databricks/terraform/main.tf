@@ -7,18 +7,21 @@ terraform {
       source  = "databricks/databricks"
       # Not specifying a version so we pull the latest in prod you should pin to a specific version 
     }
-    vault = {
-      source  = "hashicorp/vault"
-      # Not specifying a version so we pull the latest in prod you should pin to a specific version 
-    }
   }
 }
 
-# Provider authenticates automatically from DATABRICKS_HOST and DATABRICKS_TOKEN environment variables
-provider "databricks" {}
 
-resource "databricks_directory" "shared_dir" {
-  path = "/Shared/Queries"
+# NOTE - provisioning terraform needs to be applied before this...
+# There is a better way to do this, usually youd want to arrange the directory structure
+# better and apply things like dev/staging/prod, but for learning purposes, I'm going to 
+# leave it this way for now so i can utilize it.  In a real situation I would want to structure
+# this better
+data "terraform_remote_state" "provisioning" {
+  backend = "local" # in a real situation, we wouldn't rely on local here, we'd want to save the state in a shared backend like s3
+
+  config = {
+    path = "./provisioning/terraform.tfstate"
+  }
 }
 
 
@@ -51,9 +54,13 @@ resource "databricks_catalog" "sandbox" {
     purpose = "testing"
     owner   = "alex.hoekstra618+databricks@gmail.com"
   }
-} */
+}
 
-/* # Execute a SQL command to bypass the missing root metastore URL error
+resource "databricks_directory" "shared_dir" {
+  path = "/Shared/Queries"
+}
+
+# Execute a SQL command to bypass the missing root metastore URL error
 resource "databricks_query" "create_test_pizza_catalog_query" {
   warehouse_id  = data.databricks_sql_warehouse.default.id
   display_name  = "Create test_pizza Catalog"

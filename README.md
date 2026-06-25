@@ -5,6 +5,7 @@
 This repository contains elements and experiments from my journey as I learn about Databricks Platform Engineering. Below are the main areas of focus, each referencing a section of the codebase where more detailed documentation can be found.
 This was all done on Databricks Free Tier, so there are some limitations to what could be experimented on.
  
+## Overview
 
 ## 1. CI/CD with GitHub Actions
 
@@ -18,16 +19,17 @@ Automated deployment and testing pipelines are managed with GitHub Actions.
 
 Infrastructure is provisioned(as available by free tier) and managed using Terraform scripts.
 
-- **Reference:** [Databricks/terraform/](Databricks/terraform/)
+- **Reference:** [Databricks/terraform/provisioning/](Databricks/terraform/provisioning/)
 
  
 
 ## 3. Automation of Raw to Bronze Layer
 
-Raw data is ingested and transformed to the bronze layer through automated ETL pipelines and jobs.
+Raw data is ingested to the bronze layer and transformed in Silver/Gold through automated ETL pipelines and jobs.
 
-- **Reference:** [Databricks/bundles/daily_capitals_weather/src/daily_capitals_weather_etl/transformations/bronze_daily_capitals_weather.py](Databricks/bundles/daily_capitals_weather/src/daily_capitals_weather_etl/transformations/bronze_daily_capitals_weather.py)
-
+- **Reference:** [Databricks/terraform/jobs.tf](Databricks/terraform/jobs.tf)
+- **Reference:** [Databricks/terraform/notebooks.tf](Databricks/terraform/notebooks.tf)
+- **Reference:** [Databricks/bundles/daily_capitals_weather/](Databricks/bundles/daily_capitals_weather/)
  
 
 ## 4. Scalable Ingestion Framework
@@ -42,7 +44,7 @@ Frameworks and scripts for scalable data ingestion. (Provisioning limited by Fre
 
 Privacy and data protection best practices are implemented in scripts. Vault is used as a local secrets manager along with Databricks and Github Secrets
 
-- **Reference:** 
+- **Reference:** [Databricks/terraform/](Databricks/terraform/)
 
  
 
@@ -50,7 +52,8 @@ Privacy and data protection best practices are implemented in scripts. Vault is 
 
 Monitoring, alerting, and observability infrastructure for the platform.
 
-- **Reference:** 
+- **Reference:** [Databricks/terraform/provisioning/](Databricks/terraform/provisioning/)
+- **Reference:** [Databricks/terraform/jobs.tf](Databricks/terraform/jobs.tf) (resource "databricks_alert_v2" "max_players_exceeded_alert")
 
  
 

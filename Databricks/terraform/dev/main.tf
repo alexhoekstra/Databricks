@@ -20,7 +20,7 @@ data "terraform_remote_state" "provisioning" {
   backend = "local" # in a real situation, we wouldn't rely on local here, we'd want to save the state in a shared backend like s3
 
   config = {
-    path = "./provisioning/terraform.tfstate"
+    path = "../provisioning/terraform.tfstate"
   }
 }
 

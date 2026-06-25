@@ -16,8 +16,8 @@ Infrastructure is provisioned(as available by free tier) and managed using Terra
 
 Raw data is ingested to the bronze layer and transformed in Silver/Gold through automated ETL pipelines and jobs.
 
-- **Reference:** [jobs.tf](jobs.tf)
-- **Reference:** [notebooks.tf](notebooks.tf)
+- **Reference:** [dev/jobs.tf](dev/jobs.tf)
+- **Reference:** [dev/notebooks.tf](dev/notebooks.tf)
 
 ## 3. Implementing Privacy in Scripts
 
@@ -29,7 +29,7 @@ Privacy and data protection best practices are implemented in scripts. Vault is 
 Monitoring, alerting, and observability infrastructure for the platform.
 
 - **Reference:** [provisioning/](provisioning/)
-- **Reference:** [jobs.tf](jobs.tf) (resource "databricks_alert_v2" "max_players_exceeded_alert")
+- **Reference:** [dev/jobs.tf](dev/jobs.tf) (resource "databricks_alert_v2" "max_players_exceeded_alert")
 
 ## 5. Terraform Reuse (Modules
 
@@ -39,7 +39,7 @@ Self-contained, reusable packages of Terraform configurations
 
 Usage examples:
 - **Reference:** [databricks_secrets.tf](databricks_secrets.tf)
-- **Reference:** [jobs.tf](jobs.tf)
+- **Reference:** [dev/jobs.tf](dev/jobs.tf)
 
 ## Key Databricks functions
 

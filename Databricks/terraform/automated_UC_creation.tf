@@ -53,3 +53,15 @@ module "test_UC_Create_two"{
     }
   }
 }
+
+## This was meant to be an example of granting a group the ability to read only use (read) the schama
+# unfortunatly The group exists in the workspace but not in Unity Catalog's identity federation
+# and UC needs groups to be identity-federated which i cannot do in free tier
+/*
+#Grant the example users group the ability to use the schema only
+resource "databricks_grant" "grant_example_users_terraform_automated_schema_1_read" {
+  schema = module.test_UC_Create_One.schema_id
+  principal  = data.terraform_remote_state.provisioning.outputs.example_user_group_name
+  privileges = ["USE_SCHEMA"]
+}*/
+

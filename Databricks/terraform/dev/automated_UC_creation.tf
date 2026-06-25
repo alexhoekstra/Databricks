@@ -1,7 +1,7 @@
 # This file is a demonstration of using the unity_catalog_module to automate creation of UC objects
 
 module "test_UC_Create_One"{
-    source = "./modules/unity_catalog_module"
+    source = "../modules/unity_catalog_module"
     existing_catalog = var.catalog_name
     schema_name = "terraform_automated_schema_1"
     schema_comment = "Terraform Automated Schema 1"
@@ -28,7 +28,7 @@ module "test_UC_Create_One"{
 }
 
 module "test_UC_Create_two"{
-    source = "./modules/unity_catalog_module"
+    source = "../modules/unity_catalog_module"
     existing_catalog = var.catalog_name
     schema_name = "terraform_automated_schema_2"
     schema_comment = "Terraform Automated Schema 2"

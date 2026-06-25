@@ -27,8 +27,8 @@ Infrastructure is provisioned(as available by free tier) and managed using Terra
 
 Raw data is ingested to the bronze layer and transformed in Silver/Gold through automated ETL pipelines and jobs.
 
-- **Reference:** [Databricks/terraform/jobs.tf](Databricks/terraform/jobs.tf)
-- **Reference:** [Databricks/terraform/notebooks.tf](Databricks/terraform/notebooks.tf)
+- **Reference:** [Databricks/terraform/dev/jobs.tf](Databricks/terraform/dev/jobs.tf)
+- **Reference:** [Databricks/terraform/dev/notebooks.tf](Databricks/terraform/dev/notebooks.tf)
 - **Reference:** [Databricks/bundles/daily_capitals_weather/](Databricks/bundles/daily_capitals_weather/)
  
 
@@ -53,7 +53,7 @@ Privacy and data protection best practices are implemented in scripts. Vault is 
 Monitoring, alerting, and observability infrastructure for the platform.
 
 - **Reference:** [Databricks/terraform/provisioning/](Databricks/terraform/provisioning/)
-- **Reference:** [Databricks/terraform/jobs.tf](Databricks/terraform/jobs.tf) (resource "databricks_alert_v2" "max_players_exceeded_alert")
+- **Reference:** [Databricks/terraform/dev/jobs.tf](Databricks/terraform/dev/jobs.tf) (resource "databricks_alert_v2" "max_players_exceeded_alert")
 
  
 

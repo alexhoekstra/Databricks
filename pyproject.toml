@@ -8,4 +8,4 @@ reportGeneralTypeIssues = "none"
 
 [tool.pylint.main]
 ignore-paths = ["^Databricks/bundles/my_first_bundle/.*", "^Databricks/bundles/daily_capitals_weather/tests/.*" ]
-ignored-modules = ["databricks.sdk.runtime", "dbutils", "spark", "kagglehub", "daily_capitals_weather.taxis", "daily_capitals_weather"]
+ignored-modules = ["databricks.sdk.runtime", "dbutils", "spark", "kaggle", "kagglehub", "daily_capitals_weather.taxis", "daily_capitals_weather"]

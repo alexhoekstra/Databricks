@@ -1,0 +1,14 @@
+# terraform.tfvars
+domains = {
+  wc = {
+    source_type = "kaggle"
+    source_config = {
+      dataset = "swaptr/fifa-wc-2026-teams"
+      filename = "teams.csv"
+    }
+    target_table = "wc_teams_bronze"
+    target_catalog = "main"
+    schedule = "0 0 14 * * ?"
+    sp = "sp-wc-pipeline" ##To implement
+  }
+}

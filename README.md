@@ -4,6 +4,24 @@
 
 This repository contains elements and experiments from my journey as I learn about Databricks Platform Engineering. Below are the main areas of focus, each referencing a section of the codebase where more detailed documentation can be found.
 This was all done on Databricks Free Tier, so there are some limitations to what could be experimented on.
+
+## Musings
+
+While Terraform provides the ability to do many things, its core strength is in the managing of the workspace and infrastructure. Databricks Declarative Automation Bundles provide a seemingly better way in Databricks to orchestrate jobs/pipelines/notebooks. Using these together provides the best benefit.
+
+The boundry from ingestion -> raw data -> bronze seems to be a bit murky sometimes and it seems to depend on the use case. Do you want/need to maintain a copy of the raw data in Databricks, or do you want to just ingest it directly into a bronze table?
+
+ To add to that complexity, do you need to keep it in a temporary drop point so once its processed its deleted? Or do you need to keep it as a raw archive for lineage/auditability?
+
+I experimented with a few options:
+- Open Air Quality
+  - Completely terraform managed job (mislabed as a pipeline) that creates a job with tasks that pull the data and creates bronze/silver/gold 
+- Daily Capitals Weather
+  - Completly Declarable Asset Bundle managed ingestion and transformations
+- Fifa World Cup 2026 teams data
+  - Initially started as pulling the data into a volume and then creating a bronze table, but converted to using kagglehub to directly pull the data and transform into a bronze table.  
+  - I plan to revisit and create a second bronze table with the volume method.
+
  
 ## Overview
 
@@ -25,20 +43,22 @@ Infrastructure is provisioned(as available by free tier) and managed using Terra
 
 ## 3. Automation of Raw to Bronze Layer
 
-Raw data is ingested to the bronze layer and transformed in Silver/Gold through automated ETL pipelines and jobs.
+Raw data is ingested to the bronze layer (fifa_world_cup)
 
 - **Reference:** [Databricks/terraform/dev/jobs.tf](Databricks/terraform/dev/jobs.tf)
 - **Reference:** [Databricks/terraform/dev/notebooks.tf](Databricks/terraform/dev/notebooks.tf)
+
+DAB performing ingestion using the python wheel file, and a daily job refreshing the pipeline, performing transformations to Bronze/Silver/Gold
 - **Reference:** [Databricks/bundles/daily_capitals_weather/](Databricks/bundles/daily_capitals_weather/)
  
 
 ## 4. Scalable Ingestion Framework
 
-Frameworks and scripts for scalable data ingestion. (Provisioning limited by Free Tier)
+Sample Databricks Asset Bundle performing data ingestion.  (Provisioning limited by Free Tier)
 
 - **Reference:** [Databricks/bundles/daily_capitals_weather/src/daily_capitals_weather_etl/](Databricks/bundles/daily_capitals_weather/src/daily_capitals_weather_etl/)
 
- 
+
 
 ## 5. Implementing Privacy in Scripts
 

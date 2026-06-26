@@ -18,6 +18,6 @@ resource "databricks_notebook" "gold_openaq" {
 
 resource "databricks_notebook" "worldcup_bronze_ingest" {
   source = "${path.module}/../../notebooks/world_cup/world_cup.ipynb"
-  path = "/Shared/openaq/worldcup_bronze_ingest"
+  path = "/Shared/worldcup_bronze_ingest"
   depends_on = [databricks_schema.worldcup]
 }

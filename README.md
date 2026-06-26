@@ -1,84 +1,68 @@
 # Databricks Platform Engineering Exploration
 
- 
-
-This repository contains elements and experiments from my journey as I learn about Databricks Platform Engineering. Below are the main areas of focus, each referencing a section of the codebase where more detailed documentation can be found.
-This was all done on Databricks Free Tier, so there are some limitations to what could be experimented on.
+This repository contains elements and experiments from my journey as I learn about 
+Databricks Platform Engineering. Below are the main areas of focus, each referencing a section of the codebase where more detailed
+documentation can be found.
 
 ## Musings
 
-While Terraform provides the ability to do many things, its core strength is in the managing of the workspace and infrastructure. Databricks Declarative Automation Bundles provide a seemingly better way in Databricks to orchestrate jobs/pipelines/notebooks. Using these together provides the best benefit.
+While Terraform can do many things, its core strength is managing workspace infrastructure. Databricks Asset Bundles (DABs) offer a more natural fit for orchestrating jobs, pipelines, and notebooks within Databricks. Used together, 
+each handles what it does best.
 
-The boundry from ingestion -> raw data -> bronze seems to be a bit murky sometimes and it seems to depend on the use case. Do you want/need to maintain a copy of the raw data in Databricks, or do you want to just ingest it directly into a bronze table?
+One area that took some exploration was the boundary between ingestion, raw data, and bronze. The right approach seems to depend on the
+use case. Do you need to preserve a copy of the raw data, or ingest directly into bronze? Should files be staged temporarily and deleted
+after processing, or retained as a raw archive for lineage and auditability? 
 
- To add to that complexity, do you need to keep it in a temporary drop point so once its processed its deleted? Or do you need to keep it as a raw archive for lineage/auditability?
-
-I experimented with a few options:
-- Open Air Quality
-  - Completely terraform managed job (mislabed as a pipeline) that creates a job with tasks that pull the data and creates bronze/silver/gold 
-- Daily Capitals Weather
-  - Completly Declarable Asset Bundle managed ingestion and transformations
-- Fifa World Cup 2026 teams data
-  - Initially started as pulling the data into a volume and then creating a bronze table, but converted to using kagglehub to directly pull the data and transform into a bronze table.  
-  - I plan to revisit and create a second bronze table with the volume method.
-
+The [`scalable_ingestion`](Databricks/terraform/scalable_ingestion/) folder is where I'm putting that exploration into practice.
  
 ## Overview
 
-## 1. CI/CD with GitHub Actions
-
-Automated deployment and testing pipelines are managed with GitHub Actions.
-
-- **Reference:** [.github/workflows/](.github/workflows/) (workflow YAMLs)
-
- 
-
-## 2. Infrastructure as Code
-
-Infrastructure is provisioned(as available by free tier) and managed using Terraform scripts.
-
-- **Reference:** [Databricks/terraform/provisioning/](Databricks/terraform/provisioning/)
-
- 
-
-## 3. Automation of Raw to Bronze Layer
-
-Raw data is ingested to the bronze layer (fifa_world_cup)
-
-- **Reference:** [Databricks/terraform/dev/jobs.tf](Databricks/terraform/dev/jobs.tf)
-- **Reference:** [Databricks/terraform/dev/notebooks.tf](Databricks/terraform/dev/notebooks.tf)
-
-DAB performing ingestion using the python wheel file, and a daily job refreshing the pipeline, performing transformations to Bronze/Silver/Gold
-- **Reference:** [Databricks/bundles/daily_capitals_weather/](Databricks/bundles/daily_capitals_weather/)
- 
-
-## 4. Scalable Ingestion Framework
-
-Sample Databricks Asset Bundle performing data ingestion.  (Provisioning limited by Free Tier)
-
-- **Reference:** [Databricks/bundles/daily_capitals_weather/src/daily_capitals_weather_etl/](Databricks/bundles/daily_capitals_weather/src/daily_capitals_weather_etl/)
-
-
-
-## 5. Implementing Privacy in Scripts
-
-Privacy and data protection best practices are implemented in scripts. Vault is used as a local secrets manager along with Databricks and Github Secrets
-
-- **Reference:** [Databricks/terraform/](Databricks/terraform/)
-
- 
-
-## 6. Platform Monitoring & Observability
-
-Monitoring, alerting, and observability infrastructure for the platform.
-
-- **Reference:** [Databricks/terraform/provisioning/](Databricks/terraform/provisioning/)
-- **Reference:** [Databricks/terraform/dev/jobs.tf](Databricks/terraform/dev/jobs.tf) (resource "databricks_alert_v2" "max_players_exceeded_alert")
-
- 
+> **Note:** Some features are limited by the Databricks free tier.
 
 ---
 
+## 1. CI/CD — GitHub Actions
+Automated deployment and testing pipelines.
+- **Reference:** [.github/workflows/](.github/workflows/)
+
+---
+
+## 2. Infrastructure as Code — Terraform
+Workspace infrastructure provisioned and managed via Terraform.
+- **Reference:** [Databricks/terraform/](Databricks/terraform/)
+
+---
+
+## 3. Scalable Ingestion Framework (Raw → Bronze)
+A configuration-driven ingestion framework providing consistent, scalable raw-to-bronze 
+layer processing.
+- **Reference:** [Databricks/terraform/scalable_ingestion/](Databricks/terraform/scalable_ingestion/)
+
+---
+
+## 4. Databricks Asset Bundles (DABs)
+DAB-based pipelines covering the full Bronze → Silver → Gold transformation lifecycle, 
+including a daily refresh job and a packaged Python wheel.
+- **Reference:** [Databricks/bundles/daily_capitals_weather/](Databricks/bundles/daily_capitals_weather/)
+
+---
+
+## 5. Secrets & Privacy
+Secrets managed across three layers: HashiCorp Vault (local), Databricks Secrets, 
+and GitHub Secrets.
+- **Reference:** [Databricks/terraform/](Databricks/terraform/)
+
+---
+
+## 6. Monitoring & Observability
+Platform alerting and observability, including Delta Live Table alerts.
+- **Reference:** [Databricks/terraform/provisioning/](Databricks/terraform/provisioning/)
+- **Reference:** [jobs.tf](Databricks/terraform/dev/jobs.tf) — `databricks_alert_v2`
+ 
+
+---
+---
+## Notes
  
 
 For detailed documentation on each area, see the referenced folders and files. Each relevant subfolder will contain its own README with further information.
@@ -134,24 +118,4 @@ Terraform is used as the primary automation framework for deploying and managing
 │ Permissions & Access Controls               │
 │ Secret Scopes                               │
 └─────────────────────────────────────────────┘
-```
-
-### Deployment Flow
-
-```text
-Developer
-    │
-    ▼
-Terraform Container
-    │
-    ├── Retrieves credentials from Vault
-    │
-    ▼
-Terraform Providers
-    │
-    ├── Vault Provider
-    ├── Databricks Provider
-    │
-    ▼
-Databricks Platform
 ```

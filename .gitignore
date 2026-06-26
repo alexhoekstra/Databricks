@@ -4,6 +4,12 @@
 .env.*.local
 .venv
 
+# Project folders
+.vscode/
+typings/
+
+
+
 # Do NOT ignore your template file if you have one
 !.env.example
 

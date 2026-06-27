@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 import pyspark.sql.functions as F
 
-def get_format_from_filename(filename: str) -> str:
+def get_format_from_filename(fname: str) -> str:
     """ Gets the format from the given filename """
-    ext = Path(filename).suffix.lower().lstrip(".")
+    ext = Path(fname).suffix.lower().lstrip(".")
 
     # Map multiple extensions to your specific target types
     format_map = {
@@ -26,30 +26,39 @@ def get_format_from_filename(filename: str) -> str:
     # Return matched format, or default to binaryFile
     return format_map.get(ext, "binaryFile")
 
+def find_file(directory, searchfile):
+    """ Returns the absolute path of the first match, or None. 
+    rglob includes parent directories if you include them as well as search parameters"""
+    for path in Path(directory).rglob(searchfile):
+        return path.resolve()
+    return None
 
 # Parameters injected by Databricks job
 source_config = json.loads(dbutils.widgets.get("source_config"))
 source_path = dbutils.widgets.get("source_path")
-target = dbutils.widgets.get("target_table")
+schema = dbutils.widgets.get("schema")
+catalog = dbutils.widgets.get("catalog")
 
-file_format = get_format_from_filename(source_config["filename"])
+for filename in source_config["filenames"]:
 
-raw_df = None
+    file_format = get_format_from_filename(filename["name"])
 
-if file_format == "csv":
+    ingest_file = find_file(source_path, filename["name"])
+
+    print(ingest_file)
+
     raw_df = (
         spark.read
         .format(file_format)
         .option("header", "true")
         .option("inferSchema", "true")
-        .load(source_path + "/" + source_config["filename"])
+        .load(source_path + "/" + filename["name"])
     )
 
-if raw_df is not None:
     bronze_df = (
         raw_df
         .withColumn("_ingest_timestamp", F.current_timestamp())
-        .withColumn("_source_file", F.lit(source_path + "/" + source_config["filename"]))
+        .withColumn("_source_file", F.lit(source_path + "/" + filename["name"]))
     )
 
     (
@@ -57,7 +66,5 @@ if raw_df is not None:
         .format("delta")
         .mode("append")
         .option("mergeSchema", "true")
-        .saveAsTable(target)
+        .saveAsTable(catalog + "." + schema + "." + filename["table"])
     )
-else:
-    print("Format could not be parsed")

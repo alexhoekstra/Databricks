@@ -8,20 +8,10 @@ bronze table.
 
 ## How It Works
 
-Completely configuration driven ingestion pipeline
+Completely configuration driven ingestion pipeline. Minimal configuration needed. Core functionality is implemented in the `domain_batch_ingest` module.
 
-Adding a new data domain requires only a new entry in `terraform.tfvars`<span style="font-size: 0.6em;">[link](terraform.tfvars.example)</span> 
-— no additional Terraform resources needed. 
-
-
-### Batch Ingestion:
-Two generic notebooks are deployed to the Databricks shared workspace and invoked 
-per domain via a scheduled job:
-
-1. **`generic_extractor`** — Pulls data from the configured source and lands it in 
-   a managed raw volume.
-2. **`generic_autoloader`** — Picks up the landed files using Auto Loader and writes 
-   them to the target bronze table(s) defined in the configuration file .
+Adding a new data domain requires only a new entry in [`terraform.tfvars`](terraform.tfvars.example)
+— no additional Terraform resources needed.
 
 
 
@@ -34,11 +24,17 @@ Each domain is provisioned through the `domain_batch_ingest` module, which creat
 | Resource | Description |
 |---|---|
 | `databricks_schema` | Unity Catalog schema scoped to the domain |
-| `databricks_volume` | Managed volume used as the raw landing zone |
-| `databricks_job` | Two-task scheduled job (extract → autoload) |
+| `databricks_volume` | Managed volume in the schema used as the raw landing zone |
+| `databricks_job` | Scheduled job with two tasks  (extract → autoload) |
 
-The job runs on a configurable cron schedule (paused by default) and passes 
-`source_config` and `source_type` as parameters to each notebook task.
+The job runs on a configurable cron schedule (paused by default) and can optionally be configured to run as a existing service principal. 
+
+### Dependencies :
+Both tasks are configured to run a python_wheel_task. This github repo is configured with a [github action](/.github/workflows/build_deply_module_wheels.yml) that will build wheels for any modules listed in [`/Databricks/notebooks/modules`](/Databricks/notebooks/modules) and upload them to Databricks at `/Workspace/Shared/modules/{module_name}` 
+
+
+> The python files are named `{domain}-{version}--py3-none-any.whl`. You can specify a `wheel_version` in your `.tfvars` domain entries to lock it to a specific version in case of breaking updates
+
 
 ---
 

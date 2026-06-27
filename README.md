@@ -4,7 +4,7 @@ This repository contains elements and experiments from my journey as I learn abo
 Databricks Platform Engineering. Below are the main areas of focus, each referencing a section of the codebase where more detailed
 documentation can be found.
 
-## Musings
+### Musings
 
 While Terraform can do many things, its core strength is managing workspace infrastructure. Databricks Asset Bundles (DABs) offer a more natural fit for orchestrating jobs, pipelines, and notebooks within Databricks. Used together, 
 each handles what it does best.
@@ -13,54 +13,31 @@ One area that took some exploration was the boundary between ingestion, raw data
 use case. Do you need to preserve a copy of the raw data, or ingest directly into bronze? Should files be staged temporarily and deleted
 after processing, or retained as a raw archive for lineage and auditability? 
 
->***The [`scalable_ingestion`](Databricks/terraform/scalable_ingestion/) folder is where I'm putting that exploration into practice and is the capstone of this journey.***
+>:heart: ***The [`scalable_ingestion`](Databricks/terraform/scalable_ingestion/) folder is where I'm putting that exploration into practice and is the capstone of this journey.***
  
-## Overview
+# Overview
 
-
----
-
-## 1. CI/CD — GitHub Actions
-Automated deployment and testing pipelines.
+## CI/CD — GitHub Actions
+Automated deployment, dependency building, and testing pipelines.
 - **Reference:** [.github/workflows/](.github/workflows/)
 
----
-
-## 2. Infrastructure as Code — Terraform
-Workspace infrastructure provisioned and managed via Terraform.
-- **Reference:** [Databricks/terraform/](Databricks/terraform/)
-
----
-
-## 3. Scalable Ingestion Framework (Raw → Bronze)
+## Scalable Ingestion Framework (Raw → Bronze) - Terraform
 A configuration-driven ingestion framework providing consistent, scalable raw-to-bronze 
 layer processing.
 - **Reference:** [Databricks/terraform/scalable_ingestion/](Databricks/terraform/scalable_ingestion/)
 
----
-
-## 4. Databricks Asset Bundles (DABs)
+## Declarative Automation Bundles (DABs)
 DAB-based pipelines covering the full Bronze → Silver → Gold transformation lifecycle, 
 including a daily refresh job and a packaged Python wheel.
 - **Reference:** [Databricks/bundles/daily_capitals_weather/](Databricks/bundles/daily_capitals_weather/)
 
----
-
-## 5. Secrets & Privacy
+## Secrets & Privacy
 Secrets managed across three layers: HashiCorp Vault (local), Databricks Secrets, 
 and GitHub Secrets.
 - **Reference:** [Databricks/terraform/](Databricks/terraform/)
 
----
 
-## 6. Monitoring & Observability
-Platform alerting and observability, including Delta Live Table alerts.
-- **Reference:** [Databricks/terraform/provisioning/](Databricks/terraform/provisioning/)
-- **Reference:** [jobs.tf](Databricks/terraform/dev/jobs.tf) — `databricks_alert_v2`
- 
 
----
----
 ## Notes
 
 >  Some features are limited by the Databricks free tier. 
@@ -84,6 +61,8 @@ Terraform is used as the primary automation framework for deploying and managing
 ```text
 ┌─────────────────────────────────────────────┐
 │            Developer Workstation            │
+├─────────────────────────────────────────────┤
+│  Code                                       │
 └─────────────────────┬───────────────────────┘
                       │
                       ▼
@@ -94,28 +73,27 @@ Terraform is used as the primary automation framework for deploying and managing
 │  • Terraform                                │
 │                                             │
 │ HashiCorp Vault Container                   │
-│  • Secrets Management                       │
+│  • Local Secrets Management                 │
 │  • Token Storage                            │
 │  • Credential Management                    │
 └─────────────────────┬───────────────────────┘
                       │
                       ▼
-┌─────────────────────────────────────────────┐
-│                 Terraform                   │
-├─────────────────────────────────────────────┤
-│ Providers                                   │
-│  • Databricks Provider                      │
-│  • Vault Provider                           │
-└─────────────────────┬───────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────┐
-│            Databricks Platform              │
-├─────────────────────────────────────────────┤
-│ Workspaces                                  │
-│ Jobs & Workflows                            │
-│ Unity Catalog                               │
-│ Permissions & Access Controls               │
-│ Secret Scopes                               │
-└─────────────────────────────────────────────┘
-```
+┌─────────────────────────────────────────────┐            ┌─────────────────────────────────────────────┐ 
+│                 Terraform                   │            │              Github Actions                 │
+├─────────────────────────────────────────────┤            ├─────────────────────────────────────────────┤
+│ Providers                                   │            │ Providers                                   │
+│  • Databricks Provider                      │            │  • Databricks Provider                      │
+│  • Vault Provider                           │            │  • Vault Provider                           │
+└─────────────────────┬───────────────────────┘            └─────────────────────┬───────────────────────┘
+                      │                                                          │
+                      ▼                                                          ▼
+┌─────────────────────────────────────────────┐            ┌─────────────────────────────────────────────┐
+│            Databricks Platform              │            │          CI/CD Pipeline                     │
+├─────────────────────────────────────────────┤            ├─────────────────────────────────────────────┤
+│ Workspaces                                  │            │ Automated Deployments                       │
+│ Jobs & Workflows                            │            │ Testing & Validation                        │
+│ Unity Catalog                               │ <--------  │ Infrastructure as Code (WIP)                │
+│ Permissions & Access Controls               │            │ Secrets Management                          │
+│ Secret Scopes                               │            │ Monitoring & Observability (WIP)            │
+└─────────────────────────────────────────────┘            └─────────────────────────────────────────────┘

@@ -13,11 +13,10 @@ One area that took some exploration was the boundary between ingestion, raw data
 use case. Do you need to preserve a copy of the raw data, or ingest directly into bronze? Should files be staged temporarily and deleted
 after processing, or retained as a raw archive for lineage and auditability? 
 
-The [`scalable_ingestion`](Databricks/terraform/scalable_ingestion/) folder is where I'm putting that exploration into practice.
+>***The [`scalable_ingestion`](Databricks/terraform/scalable_ingestion/) folder is where I'm putting that exploration into practice and is the capstone of this journey.***
  
 ## Overview
 
-> **Note:** Some features are limited by the Databricks free tier.
 
 ---
 
@@ -63,7 +62,8 @@ Platform alerting and observability, including Delta Live Table alerts.
 ---
 ---
 ## Notes
- 
+
+>  Some features are limited by the Databricks free tier. 
 
 For detailed documentation on each area, see the referenced folders and files. Each relevant subfolder will contain its own README with further information.
 

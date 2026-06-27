@@ -2,7 +2,7 @@ name: Build and Deploy Module Wheels
 
 on:
   push:
-    branches: [main]
+    branches: [scalable_ingestion]
     paths:
       - 'Databricks/notebooks/modules/**'
 

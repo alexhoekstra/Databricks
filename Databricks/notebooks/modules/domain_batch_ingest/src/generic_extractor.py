@@ -39,7 +39,6 @@ def extract_url_zip(config, landing):
 
 def main():
     """ Wheel entry point """
-    # dbutils/spark only referenced inside main(), safe at import time
     from databricks.sdk.runtime import dbutils # pylint: disable=import-outside-toplevel
     source_type   = dbutils.widgets.get("source_type")
     source_config = json.loads(dbutils.widgets.get("source_config"))

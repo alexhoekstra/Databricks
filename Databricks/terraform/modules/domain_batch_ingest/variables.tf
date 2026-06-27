@@ -16,12 +16,6 @@ variable "source_config" {
   default = null
 }
 
-variable "target_table" {
-  type = string
-  description = "The name of target table in the bronze schema"
-  default = null
-}
-
 variable "schedule" {
   type = string
   description = "The quartz cron expression for the schedule of the job"

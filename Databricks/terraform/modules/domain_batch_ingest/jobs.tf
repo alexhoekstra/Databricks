@@ -9,7 +9,8 @@ resource "databricks_job" "domain_batch_ingest" {
       base_parameters = {
         source_config = var.source_config
         source_path  = databricks_volume.raw_volume.volume_path
-        target_table = "${var.target_catalog}.${var.domain}.${var.target_table}"
+        schema = databricks_schema.domain_schema.name
+        catalog = var.target_catalog
       }
     }
   }
@@ -37,7 +38,7 @@ resource "databricks_job" "domain_batch_ingest" {
         environment_key = "default"
         spec {
             client       = "2" 
-            dependencies = ["kagglehub"] #this can be done better, it should be dynamic
+            dependencies = ["kagglehub", "huggingface_hub"] #this can be done better, it should be dynamic not for all jobs
         }
   } 
 

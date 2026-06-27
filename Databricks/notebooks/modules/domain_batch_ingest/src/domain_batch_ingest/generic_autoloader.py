@@ -1,4 +1,5 @@
 """ Configuration driven auto-loader to load data into tables """
+import argparse
 import json
 from pathlib import Path
 import pyspark.sql.functions as F
@@ -36,12 +37,19 @@ def get_files_to_ingest(directory, searchfile) -> list:
 
 def main():
     """ Entry point for the python wheel"""
-    from databricks.sdk.runtime import dbutils, spark # pylint: disable=import-outside-toplevel
-
-    source_config = json.loads(dbutils.widgets.get("source_config"))
-    source_path   = dbutils.widgets.get("source_path")
-    schema        = dbutils.widgets.get("schema")
-    catalog       = dbutils.widgets.get("catalog")
+    from databricks.sdk.runtime import spark # pylint: disable=import-outside-toplevel
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source_config", required=True)
+    parser.add_argument("--source_path", required=True)
+    parser.add_argument("--schema", required=True)
+    parser.add_argument("--catalog", required=True)
+    args = parser.parse_args()
+    
+    source_config = json.loads(args.source_config)
+    source_path = args.source_path
+    schema = args.schema
+    catalog = args.catalog
 
     for filename in source_config["filenames"]:
         file_format = get_format_from_filename(filename["name"])

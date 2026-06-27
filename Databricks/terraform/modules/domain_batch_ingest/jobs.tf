@@ -3,24 +3,27 @@ resource "databricks_job" "domain_batch_ingest" {
 
   task {
     task_key = "autoload"
+    environment_key = "auto_ingest"
     depends_on { task_key = "extract" }
-    notebook_task {
-      notebook_path = "/Shared/scalable_ingestion/generic_autoloader"
-      base_parameters = {
+    python_wheel_task {
+      package_name = "domain_batch_ingest"
+      entry_point  = "generic_autoloader"
+      named_parameters = {
         source_config = var.source_config
-        source_path  = databricks_volume.raw_volume.volume_path
-        schema = databricks_schema.domain_schema.name
-        catalog = var.target_catalog
+        source_path   = databricks_volume.raw_volume.volume_path
+        schema        = databricks_schema.domain_schema.name
+        catalog       = var.target_catalog
       }
     }
   }
 
   task {
     task_key = "extract"
-    environment_key = "default"
-    notebook_task {
-      notebook_path = "/Shared/scalable_ingestion/generic_extractor"
-      base_parameters = {
+    environment_key = "auto_ingest"
+    python_wheel_task {
+      package_name = "domain_batch_ingest"
+      entry_point  = "generic_extractor"
+      named_parameters = {
         source_config = var.source_config
         source_type   = var.source_type
         landing_path  = databricks_volume.raw_volume.volume_path
@@ -43,10 +46,10 @@ resource "databricks_job" "domain_batch_ingest" {
   }
 
   environment {
-        environment_key = "default"
+        environment_key = "auto_ingest"
         spec {
             client       = "2" 
-            dependencies = ["kagglehub", "huggingface_hub"] #this can be done better, it should be dynamic not for all jobs
+            dependencies = ["kagglehub", "huggingface_hub", "/Workspace/Shared/modules/domain_batch_ingest/domain_batch_ingest-${var.wheel_version}-py3-none-any.whl"] #this can be done better, it should be dynamic not for all jobs
         }
   } 
 

@@ -9,10 +9,6 @@ terraform {
 }
 
 module "domain_batch_ingest" {
-  depends_on = [
-    databricks_notebook.generic_extractor, 
-    databricks_notebook.generic_autoloader]
-
   for_each = var.domains
 
   source = "../modules/domain_batch_ingest"

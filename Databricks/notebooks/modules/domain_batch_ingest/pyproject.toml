@@ -1,4 +1,3 @@
-# src/scalable_ingestion/pyproject.toml
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
@@ -15,3 +14,9 @@ dependencies = [
 [project.scripts]
 generic_extractor  = "domain_batch_ingest.generic_extractor:main"
 generic_autoloader = "domain_batch_ingest.generic_autoloader:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"domain_batch_ingest" = "src"

@@ -36,7 +36,3 @@ dist/
 **/override.tf.json
 **/*_override.tf
 **/*_override.tf.json
-
-# Variables files anywhere
-**/*.tfvars
-**/*.tfvars.json

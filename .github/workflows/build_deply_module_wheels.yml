@@ -5,6 +5,8 @@ on:
     branches: [scalable_ingestion]
     paths:
       - 'Databricks/notebooks/modules/**'
+    # Adds a "Run workflow" button in the GitHub Actions UI
+  workflow_dispatch: 
 
 jobs:
   build-and-deploy:

@@ -33,3 +33,8 @@ variable "sp" {
   description = "The Display name of the service principal to use"
   default = null
 }
+
+variable "wheel_version" {
+  type    = string
+  default = "0.1.0"
+}

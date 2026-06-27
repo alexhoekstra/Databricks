@@ -1,9 +1,10 @@
 """ Configuration driven auto-extractor to extract data from various sources"""
-import zipfile
+import argparse
 import json
 import os
 import requests
 import kagglehub
+import zipfile
 from huggingface_hub import snapshot_download
 
 def extract_kaggle(config, landing):
@@ -39,10 +40,15 @@ def extract_url_zip(config, landing):
 
 def main():
     """ Wheel entry point """
-    from databricks.sdk.runtime import dbutils # pylint: disable=import-outside-toplevel
-    source_type   = dbutils.widgets.get("source_type")
-    source_config = json.loads(dbutils.widgets.get("source_config"))
-    landing_path  = dbutils.widgets.get("landing_path")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source_type", required=True)
+    parser.add_argument("--source_config", required=True)
+    parser.add_argument("--landing_path", required=True)
+    args = parser.parse_args()
+    
+    source_type = args.source_type
+    source_config = json.loads(args.source_config)
+    landing_path = args.landing_path
 
     if source_type == "kaggle":
         extract_kaggle(source_config, landing_path)

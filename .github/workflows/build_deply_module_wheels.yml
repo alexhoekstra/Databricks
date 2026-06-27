@@ -2,7 +2,7 @@ name: Build and Deploy Module Wheels
 
 on:
   push:
-    branches: [scalable_ingestion]
+    branches: [main]
     paths:
       - 'Databricks/notebooks/modules/**'
     # Adds a "Run workflow" button in the GitHub Actions UI

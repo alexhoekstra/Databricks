@@ -1,4 +1,4 @@
-# Scalable Ingestion — Terraform
+# Configuration Driven Scalable Ingestion — Terraform
 
 Terraform configuration for a configuration-driven, scalable ingestion framework 
 that extracts data from external sources and loads it into a Databricks Unity Catalog 
@@ -7,8 +7,12 @@ bronze table.
 ---
 
 ## How It Works
-Adding a new data domain requires only a new entry in `terraform.tfvars` 
-— no additional Terraform resources needed.
+
+Completely configuration driven ingestion pipeline
+
+Adding a new data domain requires only a new entry in `terraform.tfvars`<span style="font-size: 0.6em;">[link](terraform.tfvars.example)</span> 
+— no additional Terraform resources needed. 
+
 
 ### Batch Ingestion:
 Two generic notebooks are deployed to the Databricks shared workspace and invoked 
@@ -17,7 +21,7 @@ per domain via a scheduled job:
 1. **`generic_extractor`** — Pulls data from the configured source and lands it in 
    a managed raw volume.
 2. **`generic_autoloader`** — Picks up the landed files using Auto Loader and writes 
-   them to the target bronze table.
+   them to the target bronze table(s) defined in the configuration file .
 
 
 
@@ -44,17 +48,21 @@ Add an entry to `domains` in your `terraform.tfvars`:
 
 ```hcl
 domains = {
-  fifa = {
-    source_type   = "kaggle"
+  arc_challenge = {
+    source_type = "hugging_face"
     source_config = {
-      dataset = "swaptr/fifa-wc-2026-teams"
-      filename = "teams.csv"
+      repo = "allenai/ai2_arc"
+      filenames = [
+        {name = "ARC-Challenge/test-00000-of-00001.parquet", table = "arc_test_bronze"},
+        {name = "ARC-Challenge/train-00000-of-00001.parquet",table = "arc_train_bronze"}, 
+        {name = "ARC-Challenge/validation-00000-of-00001.parquet", table = "arc_validation_bronze"},
+        {name = "ARC-Challenge/*.parquet", table = "arc_merged_bronze"}]
     }
-    target_table = "wc_teams_bronze"
     target_catalog = "main"
-    schedule      = "0 0 * * * ?"
-  }
+    schedule = "0 0 14 * * ?"
+    sp = "sp-wc-pipeline" ##To implement
+  },
 }
 ```
 
-Terraform will provision the schema, volume, and job automatically.
+Terraform will provision the schema, volume, and job automatically. All data will be ingested into your defined table(s)

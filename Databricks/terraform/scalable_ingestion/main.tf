@@ -21,4 +21,5 @@ module "domain_batch_ingest" {
   source_config = jsonencode(each.value.source_config)
   target_catalog = each.value.target_catalog
   schedule = each.value.schedule
+  sp = try(each.value.sp, null)
 }

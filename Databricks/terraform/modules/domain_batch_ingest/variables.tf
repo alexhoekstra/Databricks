@@ -27,3 +27,9 @@ variable "target_catalog" {
   description = "The name of target catalog"
   default = null
 }
+
+variable "sp" {
+  type = string
+  description = "The Display name of the service principal to use"
+  default = null
+}

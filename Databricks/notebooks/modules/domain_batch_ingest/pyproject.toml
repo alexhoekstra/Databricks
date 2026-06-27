@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "domain_batch_ingest"
+version = "0.1.0"
+dependencies = [
+    "kagglehub",
+    "huggingface_hub",
+    "requests"
+]
+
+[project.scripts]
+generic_extractor  = "domain_batch_ingest.generic_extractor:main"
+generic_autoloader = "domain_batch_ingest.generic_autoloader:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"domain_batch_ingest" = "src"

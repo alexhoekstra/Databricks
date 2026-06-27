@@ -8,6 +8,11 @@
 .vscode/
 typings/
 
+#build folders
+build/
+dist/
+*.egg-info/
+
 
 
 # Do NOT ignore your template file if you have one

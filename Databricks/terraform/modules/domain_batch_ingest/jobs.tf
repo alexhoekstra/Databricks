@@ -28,6 +28,14 @@ resource "databricks_job" "domain_batch_ingest" {
     }
   }
 
+  # Conditionally include the run_as block if sp was set
+  dynamic "run_as" {
+    for_each = var.sp != null ? [var.sp] : []
+    content {
+      service_principal_name = data.databricks_service_principal.sp[0].application_id
+    }
+  }
+
   schedule {
     quartz_cron_expression = var.schedule
     timezone_id = "America/New_York"

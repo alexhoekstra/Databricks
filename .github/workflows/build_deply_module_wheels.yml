@@ -1,0 +1,57 @@
+name: Build and Deploy Module Wheels
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Databricks/notebooks/modules/**'
+    # Adds a "Run workflow" button in the GitHub Actions UI
+  workflow_dispatch: 
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build wheels
+        run: |
+          find Databricks/notebooks/modules -name "pyproject.toml" | while read pyproject; do
+            module_dir=$(dirname "$pyproject")
+            module_name=$(basename "$module_dir")
+
+            echo "Building wheel for: $module_name"
+            python -m build --wheel "$module_dir"
+          done
+
+      - name: Install Databricks CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+      - name: Upload wheels to DBFS
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        run: |
+          find Databricks/notebooks/modules -name "pyproject.toml" | while read pyproject; do
+            module_dir=$(dirname "$pyproject")
+            module_name=$(basename "$module_dir")
+
+            echo "Uploading wheel for: $module_name"
+            databricks fs cp --overwrite \
+              "$module_dir/dist/"*.whl \
+              "dbfs:/Shared/modules/$module_name/"
+
+            echo "Uploaded $module_name wheel to dbfs:/Shared/modules/$module_name/"
+          done

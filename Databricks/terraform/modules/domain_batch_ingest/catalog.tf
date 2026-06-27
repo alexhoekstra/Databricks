@@ -5,6 +5,7 @@ resource "databricks_schema" "domain_schema" {
   properties = {
     kind = "various"
   }
+  owner = var.sp != null ? data.databricks_service_principal.sp[0].application_id  : null
 }
 
 resource "databricks_volume" "raw_volume" {
@@ -14,4 +15,10 @@ resource "databricks_volume" "raw_volume" {
   volume_type = "MANAGED"
   comment = "Volume for ${var.domain}"
   depends_on = [ databricks_schema.domain_schema ]
+  owner = var.sp != null ? data.databricks_service_principal.sp[0].application_id  : null
+}
+
+data "databricks_service_principal" "sp" {
+  count = var.sp != null ? 1 : 0
+  display_name = var.sp
 }

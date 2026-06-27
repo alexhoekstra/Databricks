@@ -1,0 +1,13 @@
+# src/scalable_ingestion/pyproject.toml
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.backends.legacy:BuildBackend"
+
+[project]
+name = "scalable_ingestion"
+version = "0.1.0"
+dependencies = ["kagglehub", "huggingface_hub", "requests"]
+
+[project.scripts]
+generic_extractor  = "domain_batch_ingest.generic_extractor:main"
+generic_autoloader = "domain_batch_ingest.generic_autoloader:main"

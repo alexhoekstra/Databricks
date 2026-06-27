@@ -54,6 +54,20 @@ module "test_UC_Create_two"{
   }
 }
 
+resource "databricks_schema" "shared" {
+  catalog_name = "main"
+  name         = "shared"
+  comment      = "Shared resources across domains"
+}
+
+resource "databricks_volume" "modules" {
+  name         = "modules"
+  catalog_name = "main"
+  schema_name  = databricks_schema.shared.name
+  volume_type  = "MANAGED"
+  comment      = "Python wheels for shared modules"
+}
+
 ## This was meant to be an example of granting a group the ability to read only use (read) the schama
 # unfortunatly The group exists in the workspace but not in Unity Catalog's identity federation
 # and UC needs groups to be identity-federated which i cannot do in free tier

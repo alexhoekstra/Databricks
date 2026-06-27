@@ -68,7 +68,7 @@ resource "databricks_job" "fifa_ingestion" {
     schedule {
         quartz_cron_expression = "0 0 14 * * ?"
         timezone_id            = "America/New_York"
-        pause_status           = "UNPAUSED"
+        pause_status           = "PAUSED"
     }
 
     # Define the SLA window

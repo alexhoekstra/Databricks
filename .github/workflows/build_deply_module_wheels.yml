@@ -44,14 +44,32 @@ jobs:
           DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
           DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
         run: |
-          find Databricks/notebooks/modules -name "pyproject.toml" | while read pyproject; do
+          find Databricks/notebooks/modules -name "pyproject.toml" | while read -r pyproject; do
             module_dir=$(dirname "$pyproject")
             module_name=$(basename "$module_dir")
 
-            echo "Uploading wheel for: $module_name"
-            databricks fs cp --overwrite \
-              "$module_dir/dist/"*.whl \
-              "dbfs:/Shared/modules/$module_name/"
+            echo "Processing module: $module_name"
+            
+            # Target path inside your Databricks Workspace Shared folder
+            target_dir="/Workspace/Shared/modules/$module_name"
+            
+            # Ensure the subfolder path exists in the Workspace
+            databricks workspace mkdirs "$target_dir"
 
-            echo "Uploaded $module_name wheel to dbfs:/Shared/modules/$module_name/"
+            # Loop to process each wheel file individually
+            for whl in "$module_dir/dist/"*.whl; do
+              [ -e "$whl" ] || continue
+              
+              whl_filename=$(basename "$whl")
+              echo "Uploading wheel to Workspace: $whl_filename"
+              
+              databricks workspace import \
+                --format AUTO \
+                --file "$whl" \
+                --overwrite \
+                "$target_dir/$whl_filename"
+            done
+
+            echo "✅ Finished uploading for $module_name"
+            echo "----------------------------------------"
           done

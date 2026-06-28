@@ -1,8 +1,8 @@
 # Configuration Driven Scalable Ingestion — Terraform
 
-Terraform configuration for a configuration-driven, scalable ingestion framework 
-that extracts data from external sources and loads it into a Databricks Unity Catalog 
-bronze table.
+Terraform configuration for a configuration-driven, scalable ingestion framework that extracts data from external
+sources and loads it into a bronze table. See [`wc_bundle`](/Databricks/bundles/wc_bundle/) for an example 
+Declarative Automation Bundle that is triggered off a bronze table update from a domain.
 
 ---
 
@@ -30,16 +30,15 @@ Each domain is provisioned through the `domain_batch_ingest` module, which creat
 The job runs on a configurable cron schedule (paused by default) and can optionally be configured to run as a existing service principal. 
 
 ### Dependencies :
-Both tasks are configured to run a python_wheel_task. This github repo is configured with a [github action](/.github/workflows/build_deply_module_wheels.yml) that will build wheels for any modules listed in [`/Databricks/notebooks/modules`](/Databricks/notebooks/modules) and upload them to Databricks at `/Workspace/Shared/modules/{module_name}` 
-
-
-> The python files are named `{domain}-{version}--py3-none-any.whl`. You can specify a `wheel_version` in your `.tfvars` domain entries to lock it to a specific version in case of breaking updates
-
+Both tasks are configured to run a python_wheel_task. This github repo is configured with a [github action](/.github/workflows/build_deply_module_wheels.yml) that will build wheels for any modules listed in [`/Databricks/notebooks/modules`](/Databricks/notebooks/modules) and upload them to Databricks at `/Workspace/Shared/modules/{module_name}`.
 
 ---
 
-## Adding a Domain
+## Configuration
 
+> The python files are named `{domain}-{version}--py3-none-any.whl`. You can specify a `wheel_version` in your `.tfvars` domain entries to lock it to a specific version in case of breaking updates.
+
+### Adding a domain
 Add an entry to `domains` in your `terraform.tfvars`:
 
 ```hcl
@@ -56,9 +55,15 @@ domains = {
     }
     target_catalog = "main"
     schedule = "0 0 14 * * ?"
-    sp = "sp-wc-pipeline" ##To implement
+    sp = "auto_ingest_sp"
+    mode = "overwrite"
+    wheel_version = "0.1.1"
   },
 }
 ```
 
-Terraform will provision the schema, volume, and job automatically. All data will be ingested into your defined table(s)
+Terraform will provision the schema, volume, and job automatically. All data will be ingested into your defined table(s).
+
+### Bronze Table Behavior
+    mode = "overwrite"
+Configuration of table behavior (overwrite, append, etc.) can be done per domain.

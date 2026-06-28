@@ -36,9 +36,9 @@ domains = {
         {name = "*.csv", table = "summary_metrics_by_exchange_bronze"}]
       # SEC-compliant headers with proper identification
       headers   = {
-        "User-Agent"      = "testCompanyName testman@testCompanyName.com"
+        "User-Agent" = "testCompanyName testman@testCompanyName.com"
         "Accept-Encoding" = "gzip, deflate"
-        "Host"            = "www.sec.gov"
+        "Host" = "www.sec.gov"
       }
     }
     target_catalog = "main"

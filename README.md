@@ -19,22 +19,21 @@ after processing, or retained as a raw archive for lineage and auditability?
 
 ## CI/CD — GitHub Actions
 Automated deployment, dependency building, and testing pipelines.
-- **Reference:** [.github/workflows/](.github/workflows/)
+- **Reference:** [`.github/workflows/`](.github/workflows/)
 
 ## Scalable Ingestion Framework (Raw → Bronze) - Terraform
 A configuration-driven ingestion framework providing consistent, scalable raw-to-bronze 
 layer processing.
-- **Reference:** [Databricks/terraform/scalable_ingestion/](Databricks/terraform/scalable_ingestion/)
+- **Reference:** [`Databricks/terraform/scalable_ingestion/`](Databricks/terraform/scalable_ingestion/)
 
 ## Declarative Automation Bundles (DABs)
-DAB-based pipelines covering the full Bronze → Silver → Gold transformation lifecycle, 
-including a daily refresh job and a packaged Python wheel.
-- **Reference:** [Databricks/bundles/daily_capitals_weather/](Databricks/bundles/daily_capitals_weather/)
+DAB-based pipelines covering the full Bronze → Silver → Gold transformation lifecycle, and a bundle that triggers a pipeline update from a [`scalable_ingestion`](Databricks/terraform/scalable_ingestion/) bronze table update
+- **Reference:** [`Databricks/bundles/`](Databricks/bundles/)
 
 ## Secrets & Privacy
 Secrets managed across three layers: HashiCorp Vault (local), Databricks Secrets, 
 and GitHub Secrets.
-- **Reference:** [Databricks/terraform/](Databricks/terraform/)
+- **Reference:** [`Databricks/terraform/`](Databricks/terraform/)
 
 
 
@@ -79,17 +78,17 @@ Terraform is used as the primary automation framework for deploying and managing
 └─────────────────────┬───────────────────────┘
                       │
                       ▼
-┌─────────────────────────────────────────────┐            ┌─────────────────────────────────────────────┐ 
-│                 Terraform                   │            │              Github Actions                 │
-├─────────────────────────────────────────────┤            ├─────────────────────────────────────────────┤
-│ Providers                                   │            │ Providers                                   │
-│  • Databricks Provider                      │            │  • Databricks Provider                      │
-│  • Vault Provider                           │            │  • Vault Provider                           │
-└─────────────────────┬───────────────────────┘            └─────────────────────┬───────────────────────┘
-                      │                                                          │
-                      ▼                                                          ▼
+┌─────────────────────────────────────────────┐ 
+│                 Terraform                   │ 
+├─────────────────────────────────────────────┤ 
+│ Providers                                   │ 
+│  • Databricks Provider                      │ 
+│  • Vault Provider                           │ 
+└─────────────────────┬───────────────────────┘ 
+                      │ 
+                      ▼  
 ┌─────────────────────────────────────────────┐            ┌─────────────────────────────────────────────┐
-│            Databricks Platform              │            │          CI/CD Pipeline                     │
+│            Databricks Platform              │            │       Github Actions - CI/CD Pipeline       │
 ├─────────────────────────────────────────────┤            ├─────────────────────────────────────────────┤
 │ Workspaces                                  │            │ Automated Deployments                       │
 │ Jobs & Workflows                            │            │ Testing & Validation                        │

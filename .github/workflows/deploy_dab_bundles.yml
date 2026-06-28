@@ -1,10 +1,10 @@
-name: Deploy Databricks Bundle
+name: Deploy Declarative Automation Bundles
 
 on:
   push:
     branches: [main]
     paths:
-      - "Databricks/bundles/daily_capitals_weather/**"
+      - "Databricks/bundles/**"
 
 jobs:
   deploy:
@@ -26,11 +26,20 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
 
-      - name: Deploy bundle
+      - name: Deploy dcw bundle
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
           DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
         working-directory: Databricks/bundles/daily_capitals_weather
+        run: |
+          databricks bundle deploy --target prod
+        
+      - name: Deploy wc bundle
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        working-directory: Databricks/bundles/wc_bundle
         run: |
           databricks bundle deploy --target prod

@@ -37,4 +37,11 @@ variable "sp" {
 variable "wheel_version" {
   type    = string
   default = "0.1.0"
+  nullable = false
+}
+
+variable "mode" {
+  type = string
+  default = "append"
+  nullable = false
 }

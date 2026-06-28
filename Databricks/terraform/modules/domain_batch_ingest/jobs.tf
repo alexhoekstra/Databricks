@@ -10,9 +10,10 @@ resource "databricks_job" "domain_batch_ingest" {
       entry_point  = "generic_autoloader"
       named_parameters = {
         source_config = var.source_config
-        source_path   = databricks_volume.raw_volume.volume_path
-        schema        = databricks_schema.domain_schema.name
-        catalog       = var.target_catalog
+        source_path = databricks_volume.raw_volume.volume_path
+        schema = databricks_schema.domain_schema.name
+        catalog = var.target_catalog
+        mode = var.mode
       }
     }
   }

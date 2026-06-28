@@ -1,0 +1,41 @@
+# Lakeflow pipeline: wc_teams_bronze (existing) → silver → gold
+
+resources:
+  pipelines:
+    wc_teams_etl:
+      name: wc_teams_etl
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      root_path: "../src/wc_bundle_etl"
+
+      configuration:
+        bronze_catalog: ${var.catalog}
+        bronze_schema: ${var.bronze_schema}
+        bronze_table: wc_teams_bronze
+
+      libraries:
+        - glob:
+            include: ../src/wc_bundle_etl/transformations/**
+
+      environment:
+        dependencies:
+          - --editable ${workspace.file_path}
+          - ../dist/*.whl
+
+  jobs:
+    wc_teams_etl_trigger:
+      name: wc_teams_etl_trigger
+      queue:
+        enabled: true
+      trigger:
+        table_update:
+          table_names:
+            - "main.wc.wc_teams_bronze"
+          condition: "ANY_UPDATED"
+          wait_after_last_change_seconds: 60
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: "run_pipeline"
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.wc_teams_etl.id}

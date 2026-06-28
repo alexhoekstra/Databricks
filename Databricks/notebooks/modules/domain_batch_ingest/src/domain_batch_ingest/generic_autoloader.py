@@ -44,12 +44,14 @@ def main():
     parser.add_argument("--source_path", required=True)
     parser.add_argument("--schema", required=True)
     parser.add_argument("--catalog", required=True)
+    parser.add_argument("--mode", required=True)
     args = parser.parse_args()
     
     source_config = json.loads(args.source_config)
     source_path = args.source_path
     schema = args.schema
     catalog = args.catalog
+    mode = args.mode
 
     for filename in source_config["filenames"]:
         file_format = get_format_from_filename(filename["name"])
@@ -78,7 +80,7 @@ def main():
         (
             bronze_df.write
             .format("delta")
-            .mode("append")
+            .mode(mode)
             .option("mergeSchema", "true")
             .saveAsTable(f"{catalog}.{schema}.{filename['table']}")
         )

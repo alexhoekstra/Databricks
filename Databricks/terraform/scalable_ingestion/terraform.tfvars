@@ -9,6 +9,8 @@ domains = {
     target_catalog = "main"
     schedule = "0 0 14 * * ?"
     sp = "auto_ingest_sp"
+    mode = "overwrite"
+    wheel_version = "0.1.1"
   }
   arc_challenge = {
     source_type = "hugging_face"
@@ -23,6 +25,8 @@ domains = {
     target_catalog = "main"
     schedule = "0 0 14 * * ?"
     sp = "auto_ingest_sp"
+    mode = "overwrite"
+    wheel_version = "0.1.1"
   },
   stock_exchange_metrics = {
     source_type = "url_zip"
@@ -32,13 +36,15 @@ domains = {
         {name = "*.csv", table = "summary_metrics_by_exchange_bronze"}]
       # SEC-compliant headers with proper identification
       headers   = {
-        "User-Agent"      = "testCompanyName testman@testCompanyName.com"
+        "User-Agent" = "testCompanyName testman@testCompanyName.com"
         "Accept-Encoding" = "gzip, deflate"
-        "Host"            = "www.sec.gov"
+        "Host" = "www.sec.gov"
       }
     }
     target_catalog = "main"
     schedule = "0 0 14 * * ?"
     sp = "auto_ingest_sp"
+    mode = "overwrite"
+    wheel_version = "0.1.1"
   }
 }

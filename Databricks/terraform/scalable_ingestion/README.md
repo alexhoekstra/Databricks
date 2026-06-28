@@ -10,7 +10,7 @@ Declarative Automation Bundle that is triggered off a bronze table update from a
 
 Completely configuration driven ingestion pipeline. Minimal configuration needed. Core functionality is implemented in the `domain_batch_ingest` module.
 
-Adding a new data domain requires only a new entry in [`terraform.tfvars`](terraform.tfvars.example)
+Adding a new data domain requires only a new entry in [`terraform.tfvars`](terraform.tfvars)
 — no additional Terraform resources needed.
 
 

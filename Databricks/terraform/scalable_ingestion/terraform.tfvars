@@ -11,7 +11,7 @@ domains = {
     sp = "auto_ingest_sp"
     mode = "overwrite"
     wheel_version = "0.1.1"
-  }
+  },
   arc_challenge = {
     source_type = "hugging_face"
     source_config = {

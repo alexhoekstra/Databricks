@@ -13,8 +13,8 @@
 #   databricks_schema              — target schema for bronze tables
 #   databricks_catalog             — foreign catalog (Lakehouse Federation)
 #   databricks_grants              — access grants on catalog and credential
-#   databricks_notebook            — Auto Loader ingestion notebook
-#   databricks_job                 — scheduled job running the notebook
+#   databricks_workspace_file      — uploads the cdc_bronze_ingest wheel
+#   databricks_job                 — scheduled job running the wheel entry point
 # ==============================================================================
 
 # ==============================================================================
@@ -110,20 +110,24 @@ resource "databricks_grants" "rds_foreign" {
 }
 
 # ==============================================================================
-# INGESTION NOTEBOOK
-# Auto Loader notebook uploaded from the local repo to the Databricks workspace.
-# Discovers DMS CDC Parquet files in S3 and appends to bronze Delta tables.
+# INGESTION WHEEL
+# The Auto Loader ingestion logic is packaged as the cdc_bronze_ingest Python
+# wheel (Databricks/notebooks/modules/cdc_bronze_ingest). Build it first:
+#   cd ../../../notebooks/modules/cdc_bronze_ingest && python -m build --wheel
+# Then this uploads the built artifact to the workspace so the serverless job
+# can install it as a library.
 # ==============================================================================
 
-resource "databricks_notebook" "autoloader_cdc" {
-  path     = "/Shared/autoloader_cdc_bronze.py"
-  language = "PYTHON"
-  source   = "./config/autoloader_cdc_bronze.py"
+resource "databricks_workspace_file" "cdc_wheel" {
+  source = local.cdc_wheel_source
+  path   = local.cdc_wheel_workspace_path
 }
 
 # ==============================================================================
 # DATABRICKS JOB — scheduled CDC ingestion
-# Runs the Auto Loader notebook on serverless compute (client = "2").
+# Runs the cdc_bronze_ingest wheel's entry point on serverless compute
+# (client = "2"). Config is passed as named_parameters (--key value), matching
+# the wheel's argparse interface.
 # Scheduled daily at 6 AM Eastern; trigger manually with:
 #   databricks jobs run-now --job-id <ingestion_job_id output>
 # ==============================================================================
@@ -134,9 +138,10 @@ resource "databricks_job" "cdc_ingestion" {
   task {
     task_key = "autoloader_bronze"
 
-    notebook_task {
-      notebook_path = databricks_notebook.autoloader_cdc.path
-      base_parameters = {
+    python_wheel_task {
+      package_name = "cdc_bronze_ingest"
+      entry_point  = "cdc_bronze_ingest" # from [project.scripts] in pyproject.toml
+      named_parameters = {
         s3_cdc_prefix   = "s3://${local.aws.s3_bucket_name}/dms-cdc"
         source_schema   = local.aws.db_name
         target_catalog  = "main"
@@ -151,8 +156,12 @@ resource "databricks_job" "cdc_ingestion" {
   environment {
     environment_key = "default"
     spec {
-      client       = "2"
-      dependencies = []
+      client = "2"
+      # Install the uploaded wheel into the serverless environment. Uses a
+      # known-at-plan-time string (not the workspace file's computed
+      # workspace_path) to avoid the provider's inconsistent-final-plan error;
+      # depends_on below preserves the upload-before-job ordering.
+      dependencies = [local.cdc_wheel_wsfs_path]
     }
   }
 
@@ -169,6 +178,6 @@ resource "databricks_job" "cdc_ingestion" {
   depends_on = [
     databricks_schema.staging,
     databricks_external_location.bucket_root,
-    databricks_notebook.autoloader_cdc,
+    databricks_workspace_file.cdc_wheel,
   ]
 }

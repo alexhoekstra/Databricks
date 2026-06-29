@@ -87,6 +87,12 @@ aws dms start-replication-task \
   --replication-task-arn $(terraform output -raw dms_task_arn) \
   --start-replication-task-type start-replication
 
+# If this is not the first time you've started the task, you'll need to 
+# reload the target instead of start it
+aws dms start-replication-task \
+  --replication-task-arn $(terraform output -raw dms_task_arn) \
+  --start-replication-task-type reload-target
+
 # Trigger the ingestion job manually or use the Databricks UI
 cd ../databricks
 databricks jobs run-now --job-id $(terraform output -raw ingestion_job_id)
@@ -98,10 +104,13 @@ databricks jobs run-now --job-id $(terraform output -raw ingestion_job_id)
 lakeflow_connect/
 ├── aws/              — AWS layer (RDS, DMS, S3, IAM) + outputs consumed by databricks/
 ├── databricks/       — Databricks layer (Unity Catalog, jobs); reads ../aws state
-│   └── config/
-│       └── autoloader_cdc_bronze.py   — Auto Loader notebook (uploaded by Terraform)
+│                        runs the cdc_bronze_ingest wheel as a python_wheel_task
 └── migrate_state.sh  — one-time split of the old combined state
 ```
+
+> Ingestion logic lives in the `cdc_bronze_ingest` Python wheel under
+> `Databricks/notebooks/modules/cdc_bronze_ingest` (built with `python -m build
+> --wheel`); the Databricks layer uploads it and runs its entry point.
 
 ## Cost notes
 

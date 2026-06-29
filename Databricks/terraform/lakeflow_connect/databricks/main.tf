@@ -65,4 +65,18 @@ variable "databricks_user_email" {
 locals {
   # Shorthand for AWS layer outputs consumed below.
   aws = data.terraform_remote_state.aws.outputs
+
+  # cdc_bronze_ingest wheel — built from
+  # Databricks/notebooks/modules/cdc_bronze_ingest. Bump the version here when
+  # the wheel version in its pyproject.toml changes.
+  cdc_wheel_version = "0.1.0"
+  cdc_wheel_file    = "cdc_bronze_ingest-${local.cdc_wheel_version}-py3-none-any.whl"
+  cdc_wheel_source  = "${path.module}/../../../notebooks/modules/cdc_bronze_ingest/dist/${local.cdc_wheel_file}"
+
+  # Workspace path the wheel is uploaded to, and its WSFS (/Workspace-prefixed)
+  # form used as the serverless library dependency. Kept as known strings so the
+  # job plan never references the workspace file's computed workspace_path
+  # (which is unknown at plan time and triggers an inconsistent-plan error).
+  cdc_wheel_workspace_path = "/Shared/wheels/${local.cdc_wheel_file}"
+  cdc_wheel_wsfs_path      = "/Workspace${local.cdc_wheel_workspace_path}"
 }

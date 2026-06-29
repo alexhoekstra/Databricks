@@ -40,6 +40,11 @@ data "aws_iam_policy_document" "dms_trust" {
 # aws:PrincipalArn condition. Conditions are string matches and are not validated
 # against existing principals, so no comment-out / re-apply is needed.
 # This mirrors the pattern in the Databricks Unity Catalog setup docs.
+#
+# IMPORTANT: because SelfAssume's principal is the account root, AWS delegates
+# the self-assume decision to the role's IDENTITY policy. UC's "self-assuming
+# role" check therefore only passes if the role is ALSO granted sts:AssumeRole
+# on its own ARN — see the SelfAssumeRole statement in databricks_s3 below.
 # ==============================================================================
 
 data "aws_iam_policy_document" "databricks_trust" {
@@ -97,6 +102,19 @@ data "aws_iam_policy_document" "databricks_s3" {
       aws_s3_bucket.main.arn,
       "${aws_s3_bucket.main.arn}/*",
     ]
+  }
+
+  # Required for Unity Catalog's "self-assuming role" check. The trust policy
+  # above names the account root as principal (to avoid the first-apply
+  # chicken-and-egg), so AWS delegates the self-assume decision to this
+  # identity policy — the role can only assume itself if it is also granted
+  # sts:AssumeRole on its own ARN here. Referencing the constructed role ARN as
+  # a Resource (not a principal) does not reintroduce the chicken-and-egg.
+  statement {
+    sid       = "SelfAssumeRole"
+    effect    = "Allow"
+    actions   = ["sts:AssumeRole"]
+    resources = [local.databricks_role_arn]
   }
 }
 

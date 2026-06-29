@@ -25,8 +25,9 @@ RDS MySQL ──── Lakehouse Federation ──► rds_foreign catalog (live 
 |----------|---------|
 | Storage credential + external location | Registers the S3 bucket in Unity Catalog via the IAM role from the AWS layer |
 | Foreign catalog (`rds_foreign`) | Lakehouse Federation — query MySQL live without ETL |
-| Bronze schema + Auto Loader notebook | Appends CDC events to Delta tables, scheduled daily at 6 AM ET |
-| Job | Runs the Auto Loader notebook on serverless compute |
+| Bronze schema | Target schema for the append-only CDC bronze Delta tables |
+| Workspace file (wheel) | Uploads the `cdc_bronze_ingest` wheel to the workspace |
+| Job | Runs the wheel's `cdc_bronze_ingest` entry point on serverless compute, daily at 6 AM ET |
 
 ## Usage
 
@@ -34,13 +35,23 @@ RDS MySQL ──── Lakehouse Federation ──► rds_foreign catalog (live 
 - The AWS layer (`../aws`) already applied
 - Databricks workspace with Unity Catalog enabled
 - `DATABRICKS_HOST` and `DATABRICKS_TOKEN` environment variables set
+- The `cdc_bronze_ingest` wheel built (this layer uploads the built artifact)
 
 ### Deploy
 
 ```bash
+# 1. Build the ingestion wheel (only when its source changes)
+cd ../../../notebooks/modules/cdc_bronze_ingest
+python -m build --wheel
+
+# 2. Apply this layer
+cd -   # back to lakeflow_connect/databricks
 terraform init
 terraform apply
 ```
+
+The wheel version is pinned in `main.tf` (`local.cdc_wheel_version`); bump it
+there whenever the wheel's `pyproject.toml` version changes.
 
 No `terraform.tfvars` is required — the only variable (`databricks_user_email`)
 has a default, and all AWS/RDS values (including the RDS password) come from the
@@ -80,9 +91,11 @@ changes AWS infrastructure.
 ## File layout
 
 ```
-main.tf       — databricks provider, remote state, variables, locals
-databricks.tf — Unity Catalog resources and ingestion job
+main.tf       — databricks provider, remote state, variables, locals (incl. wheel version)
+databricks.tf — Unity Catalog resources, wheel upload, and ingestion job
 outputs.tf    — catalog / schema / job identifiers
-config/
-  autoloader_cdc_bronze.py — Auto Loader notebook (uploaded to workspace by Terraform)
 ```
+
+The ingestion logic lives in the `cdc_bronze_ingest` wheel at
+[`../../../notebooks/modules/cdc_bronze_ingest`](../../../notebooks/modules/cdc_bronze_ingest);
+this layer uploads the built wheel and runs its entry point as a job task.

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cdc_bronze_ingest"
+version = "0.1.0"
+description = "Configuration-driven Auto Loader ingestion of DMS CDC Parquet files into Unity Catalog bronze Delta tables."
+readme = "README.md"
+requires-python = ">=3.10"
+
+# Runtime deps (pyspark, databricks-sdk) are provided by the Databricks Runtime,
+# so they are intentionally NOT listed here — pinning them would shadow the
+# cluster's versions. Install them via the `dev` extra for local work/testing.
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pyspark>=3.5",
+    "databricks-sdk",
+    "pytest",
+]
+
+[project.scripts]
+cdc_bronze_ingest = "cdc_bronze_ingest.ingest:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

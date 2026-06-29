@@ -1,7 +1,10 @@
 # ==============================================================================
 # databricks.tf
 # All Databricks Unity Catalog and job resources.
-# AWS resources referenced here are defined in rds.tf and iam.tf.
+#
+# AWS values referenced here (IAM role, S3 bucket, RDS endpoint/credentials)
+# come from the AWS layer's outputs via local.aws (see main.tf remote state).
+# Nothing in this file creates or modifies AWS infrastructure.
 #
 # Resources:
 #   databricks_storage_credential  — UC credential using the Databricks IAM role
@@ -21,11 +24,11 @@
 # ==============================================================================
 
 resource "databricks_storage_credential" "main" {
-  name    = aws_iam_role.databricks_access.name
+  name    = local.aws.databricks_role_name
   comment = "Managed by Terraform — cross-account S3 access via IAM role"
 
   aws_iam_role {
-    role_arn = aws_iam_role.databricks_access.arn
+    role_arn = local.aws.databricks_role_arn
   }
 }
 
@@ -46,7 +49,7 @@ resource "databricks_grants" "storage_credential" {
 
 resource "databricks_external_location" "bucket_root" {
   name            = "databricks-bucket-root"
-  url             = "s3://${aws_s3_bucket.main.bucket}"
+  url             = "s3://${local.aws.s3_bucket_name}"
   credential_name = databricks_storage_credential.main.name
   comment         = "Root external location — covers all prefixes in the S3 bucket"
   skip_validation = true
@@ -64,10 +67,10 @@ resource "databricks_connection" "rds_mysql" {
   comment         = "Lakehouse Federation connection to AWS RDS MySQL (i2_playground)"
 
   options = {
-    host     = aws_db_instance.default.address
-    port     = tostring(aws_db_instance.default.port)
-    user     = aws_db_instance.default.username
-    password = aws_db_instance.default.password
+    host     = local.aws.db_address
+    port     = tostring(local.aws.db_port)
+    user     = local.aws.db_username
+    password = local.aws.db_password
   }
 }
 
@@ -134,11 +137,11 @@ resource "databricks_job" "cdc_ingestion" {
     notebook_task {
       notebook_path = databricks_notebook.autoloader_cdc.path
       base_parameters = {
-        s3_cdc_prefix   = "s3://${aws_s3_bucket.main.bucket}/dms-cdc"
-        source_schema   = aws_db_instance.default.db_name
+        s3_cdc_prefix   = "s3://${local.aws.s3_bucket_name}/dms-cdc"
+        source_schema   = local.aws.db_name
         target_catalog  = "main"
         target_schema   = databricks_schema.staging.name
-        checkpoint_base = "s3://${aws_s3_bucket.main.bucket}/checkpoints/cdc-bronze"
+        checkpoint_base = "s3://${local.aws.s3_bucket_name}/checkpoints/cdc-bronze"
       }
     }
 

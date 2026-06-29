@@ -13,7 +13,7 @@ One area that took some exploration was the boundary between ingestion, raw data
 use case. Do you need to preserve a copy of the raw data, or ingest directly into bronze? Should files be staged temporarily and deleted
 after processing, or retained as a raw archive for lineage and auditability? 
 
->:heart: ***The [`terraform/aws`](Databricks/terraform/aws/) project is where that exploration comes together — a full-stack CDC pipeline from AWS RDS MySQL through DMS and S3 into Databricks Unity Catalog, with Lakehouse Federation for live querying, all provisioned end-to-end with Terraform.***
+>:heart: ***The [`terraform/lakeflow_connect`](Databricks/terraform/lakeflow_connect/) project is where that exploration comes together — a full-stack CDC pipeline from AWS RDS MySQL through DMS and S3 into Databricks Unity Catalog, with Lakehouse Federation for live querying, all provisioned end-to-end with Terraform.***
  
 # Overview
 
@@ -23,7 +23,7 @@ Automated deployment, dependency building, and testing pipelines.
 
 ## AWS CDC Pipeline (RDS → Databricks) - Terraform
 Full-stack change data capture pipeline provisioned entirely with Terraform. Streams row-level changes from an AWS RDS MySQL database through DMS and S3 into Databricks Unity Catalog bronze Delta tables via Auto Loader, with a Lakehouse Federation foreign catalog for live querying without ETL.
-- **Reference:** [`Databricks/terraform/aws/`](Databricks/terraform/aws/)
+- **Reference:** [`Databricks/terraform/lakeflow_connect/`](Databricks/terraform/lakeflow_connect/)
 
 ## Declarative Automation Bundles (DABs)
 DAB-based pipelines covering the full Bronze → Silver → Gold transformation lifecycle, including a bundle that triggers downstream processing when the AWS CDC pipeline lands new data in bronze

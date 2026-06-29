@@ -33,9 +33,13 @@ data "aws_iam_policy_document" "dms_trust" {
 #   DatabricksAssume — allows Databricks' AWS control plane to assume this role
 #   SelfAssume       — allows the role to assume itself (required by UC validation)
 #
-# NOTE: SelfAssume must be commented out on first apply because the role
-# doesn't exist yet and IAM rejects references to non-existent principals.
-# Uncomment and re-apply after the role is created.
+# Both statements apply in a single `terraform apply`. The SelfAssume statement
+# does NOT name the role's own ARN as a principal (IAM rejects principal ARNs
+# that don't exist yet — the old chicken-and-egg). Instead its principal is the
+# account root, which always exists, and it is narrowed to this one role via an
+# aws:PrincipalArn condition. Conditions are string matches and are not validated
+# against existing principals, so no comment-out / re-apply is needed.
+# This mirrors the pattern in the Databricks Unity Catalog setup docs.
 # ==============================================================================
 
 data "aws_iam_policy_document" "databricks_trust" {
@@ -56,9 +60,6 @@ data "aws_iam_policy_document" "databricks_trust" {
     }
   }
 
-  # Comment out on first apply — IAM rejects the ARN before the role exists.
-  # Uncomment and re-apply once databricks-external-data-access exists in IAM.
-  # This is one of the chicken-egg anomolies that cant be fixed easily in terraform
   statement {
     sid     = "SelfAssume"
     actions = ["sts:AssumeRole"]
@@ -66,13 +67,13 @@ data "aws_iam_policy_document" "databricks_trust" {
 
     principals {
       type        = "AWS"
-      identifiers = [local.databricks_role_arn]
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
     }
 
     condition {
-      test     = "StringEquals"
-      variable = "sts:ExternalId"
-      values   = [var.databricks_account_id]
+      test     = "ArnLike"
+      variable = "aws:PrincipalArn"
+      values   = [local.databricks_role_arn]
     }
   }
 }

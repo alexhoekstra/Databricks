@@ -31,7 +31,7 @@ def stream_table_to_bronze(spark: Any, config: IngestionConfig, table: str) -> N
         config: Resolved ingestion configuration.
         table:  Source table name (a prefix discovered under the CDC root).
     """
-    source_path = config.source_path(table)
+    source_path = config.table_path(table)
     bronze = config.bronze_table(table)
     checkpoint = config.checkpoint_path(table)
     schema_loc = config.schema_location(table)

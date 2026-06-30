@@ -45,26 +45,19 @@ Passed as `named_parameters` (`--key value`) by the wheel task or CLI:
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `--s3_cdc_prefix` | yes | S3 prefix DMS writes to, e.g. `s3://bucket/dms-cdc` |
-| `--source_schema` | yes | Source MySQL database name, e.g. `mydb` |
+| `--source_path` | yes | URI of the dir whose subdirs are tables, e.g. `s3://bucket/dms-cdc/mydb` (any scheme) |
+| `--source_schema` | yes | Source schema/database name, e.g. `mydb` (lineage + checkpoints) |
 | `--target_catalog` | yes | UC catalog for bronze tables, e.g. `main` |
-| `--target_schema` | yes | UC schema for bronze tables, e.g. `lakeflow_staging` |
-| `--checkpoint_base` | yes | S3 path for Auto Loader checkpoints |
+| `--target_schema` | yes | UC schema for bronze tables, e.g. `hr_bronze` |
+| `--checkpoint_base` | no | Base URI for Auto Loader checkpoints + inferred schema. Defaults to the UC managed volume `/Volumes/<target_catalog>/<target_schema>/_checkpoints` when omitted |
 | `--bronze_suffix` | no | Suffix for bronze table names (default `_raw`) |
 
 ## Build
 
 ```bash
-cd Databricks/notebooks/modules/cdc_bronze_ingest
+cd Databricks/terraform/lakeflow_connect/bundles/lakeflow_connect/cdc_bronze_ingest
 pip install build
 python -m build --wheel        # -> dist/cdc_bronze_ingest-0.1.0-py3-none-any.whl
-```
-
-## Test
-
-```bash
-pip install -e ".[dev]"
-pytest
 ```
 
 ## Run as a Databricks Asset Bundle task
@@ -79,11 +72,10 @@ resources:
             package_name: cdc_bronze_ingest
             entry_point: cdc_bronze_ingest          # from [project.scripts]
             named_parameters:
-              s3_cdc_prefix: "s3://${var.bucket}/dms-cdc"
+              source_path: "s3://${var.bucket}/dms-cdc/mydb"
               source_schema: "mydb"
               target_catalog: "main"
-              target_schema: "lakeflow_staging"
-              checkpoint_base: "s3://${var.bucket}/checkpoints/cdc-bronze"
+              target_schema: "hr_bronze"
           libraries:
             - whl: ./dist/cdc_bronze_ingest-0.1.0-py3-none-any.whl
 ```

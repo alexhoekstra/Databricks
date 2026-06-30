@@ -2,37 +2,39 @@
 
 This repository contains elements and experiments from my journey as I learn about 
 Databricks Platform Engineering. Below are the main areas of focus, each referencing a section of the codebase where more detailed
-documentation can be found.
+documentation can be found. The flagship example is the [`lakeflow_connect`](Databricks/terraform/lakeflow_connect/) full-stack AWS CDC pipeline.
 
 ### Musings
 
-While Terraform can do many things, its core strength is managing workspace infrastructure. Databricks Asset Bundles (DABs) offer a more natural fit for orchestrating jobs, pipelines, and notebooks within Databricks. Used together, 
+While Terraform can do many things, its core strength is managing workspace infrastructure. Declarative Automation Bundles (DABs) offer a more natural fit for orchestrating jobs, pipelines, and notebooks within Databricks. Used together, 
 each handles what it does best.
 
-One area that took some exploration was the boundary between ingestion, raw data, and bronze. The right approach seems to depend on the
-use case. Do you need to preserve a copy of the raw data, or ingest directly into bronze? Should files be staged temporarily and deleted
-after processing, or retained as a raw archive for lineage and auditability? 
-
->:heart: ***The [`terraform/lakeflow_connect`](Databricks/terraform/lakeflow_connect/) project is where that exploration comes together — a full-stack CDC pipeline from AWS RDS MySQL through DMS and S3 into Databricks Unity Catalog, with Lakehouse Federation for live querying, all provisioned end-to-end with Terraform.***
+>:heart: ***The [`lakeflow_connect`](Databricks/terraform/lakeflow_connect/) project is where that exploration comes together — a full-stack CDC pipeline from AWS RDS MySQL through DMS and S3 into Databricks Unity Catalog, with Lakehouse Federation for live querying, all provisioned end-to-end with Terraform.***
  
 # Overview
+
+## :heart: lakeflow_connect — AWS CDC Pipeline (Terraform + DAB)
+The flagship project: a full-stack change data capture pipeline capturing row-level changes from an AWS RDS MySQL database through DMS and S3 into Databricks Unity Catalog bronze Delta tables via Auto Loader. (currently a triggred job, but updates can be made to make it streaming, Databricks Free Tier doesn't provide infrastructure to have constant streaming) It has an optional Lakehouse Federation foreign catalog for live querying without ETL. 
+
+It splits the work across the two tools by what each does best — **Terraform** owns per-domain Unity Catalog governance (storage credential, external location, optional federation) while a **Declarative Automation Bundle** builds the `cdc_bronze_ingest` wheel and deploys each domain's bronze schema, checkpoint volume, and Auto Loader job.
+
+Highlights:
+- **Config-driven per domain** — the whole pipeline is declared in one `terraform.tfvars` `domains` map; adding a source system needs no new code.
+- **Cloud-pluggable** — a `source_infrastructure.type` discriminator isolates the cloud-specific wiring (only `aws` today; `azure`/`gcp` slot in without changing the interface).
+- **Read-only-source friendly** — Auto Loader checkpoints + inferred schema live in a UC managed volume under the bronze schema, so the source bucket needs no write access.
+- **Reference:** [`Databricks/terraform/lakeflow_connect/`](Databricks/terraform/lakeflow_connect/)
 
 ## CI/CD — GitHub Actions
 Automated deployment, dependency building, and testing pipelines.
 - **Reference:** [`.github/workflows/`](.github/workflows/)
 
-## AWS CDC Pipeline (RDS → Databricks) - Terraform
-Full-stack change data capture pipeline provisioned entirely with Terraform. Streams row-level changes from an AWS RDS MySQL database through DMS and S3 into Databricks Unity Catalog bronze Delta tables via Auto Loader, with a Lakehouse Federation foreign catalog for live querying without ETL.
-- **Reference:** [`Databricks/terraform/lakeflow_connect/`](Databricks/terraform/lakeflow_connect/)
-
-## Declarative Automation Bundles (DABs)
-DAB-based pipelines covering the full Bronze → Silver → Gold transformation lifecycle, including a bundle that triggers downstream processing when the AWS CDC pipeline lands new data in bronze
+## Other Asset Bundles
+Standalone Declarative Automation Bundles exploring the Bronze → Silver → Gold transformation lifecycle — `daily_capitals_weather` (weather ingestion) and `wc_bundle` (a Silver/Gold pipeline triggered when its upstream bronze updates).
 - **Reference:** [`Databricks/bundles/`](Databricks/bundles/)
 
 ## Secrets & Privacy
-Secrets managed across three layers: HashiCorp Vault (local), Databricks Secrets, 
-and GitHub Secrets.
-- **Reference:** [`Databricks/terraform/`](Databricks/terraform/)
+A reusable `vault_secrets` Terraform module that pulls credentials from **HashiCorp Vault** (KV v2) at plan/apply time, keeping secrets out of code and `terraform.tfvars`. A separate exploration — not yet wired into the CDC pipeline, which currently authenticates via environment variables.
+- **Reference:** [`Databricks/terraform/modules/vault_secrets/`](Databricks/terraform/modules/vault_secrets/)
 
 
 
@@ -50,8 +52,6 @@ The repository leverages:
 * **Docker** for portable development environments
 * **HashiCorp Vault** for centralized secret management
 * **Databricks CLI** for deploying Declarative Automation Bundles and managing Databricks from your CLI
-
-Terraform is used as the primary automation framework for deploying and managing Databricks resources. The Databricks Terraform Provider enables management of workspace objects, jobs, clusters, permissions, secret scopes, Unity Catalog components, and other platform resources inside Terraform.
 
 ---
 

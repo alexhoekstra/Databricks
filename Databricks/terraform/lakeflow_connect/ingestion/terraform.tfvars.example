@@ -1,0 +1,46 @@
+# ==============================================================================
+# terraform.tfvars.example  (ingestion root)
+# Copy to terraform.tfvars and edit. terraform.tfvars is gitignored (it can
+# contain federation passwords).
+#
+# Each entry is one domain (external source system). The module assumes that
+# domain's landing infra (bucket + IAM role) already exists — see ../aws for the
+# worked AWS example. Only source_infrastructure.type = "aws" is supported today.
+# ==============================================================================
+
+domains = {
+  # DB-backed domain (RDS MySQL via DMS CDC) — includes optional federation.
+  hr = {
+    source_infrastructure = {
+      type     = "aws"
+      role_arn = "arn:aws:iam::686827376754:role/databricks-external-data-access"
+      bucket   = "databricks-686827376754"
+      prefix   = "dms-cdc/mydb"
+    }
+    target_catalog = "main"
+    source_schema  = "mydb"
+    grantee        = "example@google.com"
+    schedule       = "0 0 6 * * ?"
+    federation = {
+      connection_type = "MYSQL"
+      host            = "your-rds-endpoint.us-east-2.rds.amazonaws.com"
+      port            = 3306
+      user            = "dbadmin"
+      password        = "CHANGE_ME" # keep this file gitignored
+    }
+  }
+
+  # Non-DB domain (files land in S3 from some external system) — no federation.
+  # proposals = {
+  #   source_infrastructure = {
+  #     type     = "aws"
+  #     role_arn = "arn:aws:iam::686827376754:role/proposals-data-access"
+  #     bucket   = "proposals-landing"
+  #     prefix   = "exports"
+  #   }
+  #   target_catalog = "main"
+  #   source_schema  = "proposals"
+  #   schedule       = "0 0 7 * * ?"
+  #   federation     = null
+  # }
+}

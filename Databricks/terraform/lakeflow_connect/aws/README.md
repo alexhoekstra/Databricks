@@ -5,8 +5,12 @@ database, replication, storage, and IAM — everything that lives in AWS. It
 declares no Databricks resources and requires no Databricks credentials, so it
 can be applied entirely on its own.
 
-The Databricks layer lives in [`../databricks`](../databricks) and consumes this
-layer's outputs via remote state. **Apply this layer first.**
+This is a **standalone worked example** — one way to stand up a domain's landing
+infrastructure end-to-end. It declares no Databricks resources. Its outputs
+(`role_arn`, `bucket`, the RDS endpoint/credentials) are copied by hand into a
+domain entry in [`../ingestion/terraform.tfvars`](../ingestion); there is no
+`terraform_remote_state` coupling. Apply it standalone, whenever you need the
+example infra.
 
 ## Architecture (AWS portion)
 
@@ -24,7 +28,7 @@ IAM: Databricks cross-account S3 role + 3 DMS service roles
 |-------|----------|---------|
 | **Source** | RDS MySQL 8.0 (`db.t4g.micro`) | Source database with binlog enabled for CDC [Databricks article](https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/mysql-aws-rds-config) |
 | **Replication** | DMS replication instance + task | Streams row changes (insert/update/delete) to S3 as Parquet |
-| **Storage** | S3 bucket | Stores DMS CDC output and Auto Loader checkpoints |
+| **Storage** | S3 bucket | Stores DMS CDC output (Parquet). Auto Loader checkpoints default to a UC managed volume, not this bucket |
 | **IAM** | 4 IAM roles | DMS S3 write access, DMS VPC/CloudWatch roles, Databricks cross-account S3 access |
 
 ## Usage
@@ -56,21 +60,22 @@ aws dms start-replication-task \
 
 | Variable | Description |
 |----------|-------------|
-| `databricks_account_id` | Databricks account UUID (used as STS ExternalId in the IAM trust policy) |
-| `db_password` | RDS MySQL admin password — pass via `terraform.tfvars` or `TF_VAR_db_password` |
+| `databricks_account_id` | Databricks account UUID — Use your secrets management provider (e.g. Vault to inject this.  Terraform has a vault provider for this.)
+| `db_password` | RDS MySQL admin password — Use your secrets management provider (e.g. Vault to inject this.  Terraform has a vault provider for this.)
 
-## Outputs consumed by the Databricks layer
+## Values used by the ingestion root
 
-The Databricks layer reads these via `terraform_remote_state`:
+Copy these into the matching domain entry in `../ingestion/terraform.tfvars`
+(no remote state is read):
 
-| Output | Used for |
-|--------|----------|
-| `databricks_role_name` / `databricks_role_arn` | UC storage credential |
-| `s3_bucket_name` | UC external location + job parameters |
-| `db_address` / `db_port` / `db_username` / `db_password` / `db_name` | UC MySQL connection |
+| Output | Goes into (domain entry) |
+|--------|--------------------------|
+| `databricks_role_arn` | `source_infrastructure.role_arn` (UC storage credential) |
+| `s3_bucket_name` | `source_infrastructure.bucket` (UC external location + source path) |
+| `db_address` / `db_port` / `db_username` / `db_password` / `db_name` | the optional `federation` block (UC MySQL connection) |
 
-`db_password` is exported as a **sensitive** output so the RDS password stays
-single-sourced (defined only here, never duplicated into the Databricks layer).
+`db_password` is exported as a **sensitive** output; keep `terraform.tfvars`
+gitignored on both sides. Ideally you would use a Secrets manager for this like vault.
 
 ## File layout
 
@@ -85,7 +90,7 @@ outputs.tf  — useful ARNs + values consumed by the Databricks layer
 ## Cost notes
 
 Running continuously this layer costs roughly **$30–40/month** (RDS t4g.micro
-~$15, DMS t3.small ~$30). Stop both between sessions:
+~$15, DMS t3.small ~$30). Stop both between sessions if trying to manage free tier usage:
 
 ```bash
 # Stop DMS task

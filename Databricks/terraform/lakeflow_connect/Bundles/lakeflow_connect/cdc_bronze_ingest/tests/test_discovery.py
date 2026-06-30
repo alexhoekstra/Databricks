@@ -25,10 +25,10 @@ class FakeDbutils:
 
 def make_config() -> IngestionConfig:
     return IngestionConfig(
-        s3_cdc_prefix="s3://bucket/dms-cdc",
+        source_path="s3://bucket/dms-cdc/mydb",
         source_schema="mydb",
         target_catalog="main",
-        target_schema="staging",
+        target_schema="hr_bronze",
         checkpoint_base="s3://bucket/checkpoints",
     )
 

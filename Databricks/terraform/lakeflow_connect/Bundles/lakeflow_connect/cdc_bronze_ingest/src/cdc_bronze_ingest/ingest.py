@@ -2,7 +2,7 @@
 
 Run as a Databricks ``python_wheel_task`` with ``entry_point = "cdc_bronze_ingest"``
 (see ``[project.scripts]`` in pyproject.toml), or locally via
-``python -m cdc_bronze_ingest.ingest --s3_cdc_prefix ... --source_schema ...``.
+``python -m cdc_bronze_ingest.ingest --source_path ... --source_schema ...``.
 """
 
 from __future__ import annotations
@@ -28,15 +28,15 @@ def run(spark: Any, dbutils: Any, config: IngestionConfig) -> list[str]:
     Returns:
         The list of tables whose streams started successfully.
     """
-    logger.info("CDC source : %s/", config.source_root)
+    logger.info("Source     : %s/", config.source_path)
     logger.info("Target     : %s.%s", config.target_catalog, config.target_schema)
     logger.info("Checkpoints: %s", config.checkpoint_base)
 
     tables = discover_tables(dbutils, config)
     if not tables:
         logger.warning(
-            "No tables found under %s/ — DMS may not have started yet.",
-            config.source_root,
+            "No tables found under %s/ — the source may not have landed data yet.",
+            config.source_path,
         )
         return []
 

@@ -1,14 +1,17 @@
 # ==============================================================================
-# main.tf
+# main.tf  (AWS layer)
 # Configuration only — providers, variables, locals, data sources.
 # No resources declared here.
 #
+# This is the AWS infrastructure layer. It is fully self-contained and can be
+# applied on its own, before the Databricks layer in ../databricks. It declares
+# no Databricks resources and requires no Databricks credentials.
+#
 # Resource ownership:
-#   rds.tf        — security group, RDS instance, parameter group, S3 bucket
-#   iam.tf        — all IAM roles, policies, attachments
-#   dms.tf        — DMS replication instance, endpoints, task
-#   databricks.tf — all Databricks Unity Catalog and job resources
-#   outputs.tf    — all output values
+#   rds.tf     — security group, RDS instance, parameter group, S3 bucket
+#   iam.tf     — all IAM roles, policies, attachments
+#   dms.tf     — DMS replication instance, endpoints, task
+#   outputs.tf — values consumed by the Databricks layer via remote state
 # ==============================================================================
 
 terraform {
@@ -16,10 +19,6 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 6.0"
-    }
-    databricks = {
-      source  = "databricks/databricks"
-      version = "~> 1.0"
     }
     time = {
       source  = "hashicorp/time"
@@ -36,11 +35,6 @@ provider "aws" {
   region = "us-east-2"
 }
 
-# Authenticates from environment variables before running terraform apply:
-#   export DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
-#   export DATABRICKS_TOKEN=dapi...
-provider "databricks" {}
-
 # ==============================================================================
 # VARIABLES
 # ==============================================================================
@@ -49,12 +43,6 @@ variable "databricks_account_id" {
   description = "Databricks account UUID — used as STS ExternalId in the IAM trust policy. Find it at accounts.databricks.com in the URL or top-right profile menu."
   type        = string
   sensitive   = true
-}
-
-variable "databricks_user_email" {
-  description = "Your Databricks user email — granted privileges on the storage credential and UC resources."
-  type        = string
-  default     = "alex.hoekstra618+databricks@gmail.com"
 }
 
 variable "db_password" {

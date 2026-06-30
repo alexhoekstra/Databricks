@@ -1,8 +1,12 @@
 # ==============================================================================
-# outputs.tf
+# outputs.tf  (AWS layer)
 # All output values in one place.
 # Run: terraform output        to see all values
 #      terraform output -raw <name>  to get a single value for scripting
+#
+# The Databricks layer (../databricks) reads this state via terraform_remote_state
+# and consumes the outputs below. Adding a new cross-layer dependency means
+# exposing it here first.
 # ==============================================================================
 
 # ==============================================================================
@@ -17,6 +21,27 @@ output "db_endpoint" {
 output "db_name" {
   value       = aws_db_instance.default.db_name
   description = "MySQL database name"
+}
+
+output "db_address" {
+  value       = aws_db_instance.default.address
+  description = "RDS MySQL hostname (no port) — used by the Databricks UC connection and DMS"
+}
+
+output "db_port" {
+  value       = aws_db_instance.default.port
+  description = "RDS MySQL port"
+}
+
+output "db_username" {
+  value       = aws_db_instance.default.username
+  description = "RDS MySQL admin username"
+}
+
+output "db_password" {
+  value       = aws_db_instance.default.password
+  description = "RDS MySQL admin password — consumed by the Databricks UC connection via remote state"
+  sensitive   = true
 }
 
 # ==============================================================================
@@ -47,6 +72,11 @@ output "databricks_role_arn" {
   description = "IAM role ARN assumed by Databricks Unity Catalog for S3 access"
 }
 
+output "databricks_role_name" {
+  value       = aws_iam_role.databricks_access.name
+  description = "IAM role name — used as the Databricks UC storage credential name"
+}
+
 # ==============================================================================
 # AWS — DMS
 # ==============================================================================
@@ -59,23 +89,4 @@ output "dms_task_arn" {
     Reload: aws dms start-replication-task --replication-task-arn <arn> --start-replication-task-type reload-target
     Stop:   aws dms stop-replication-task  --replication-task-arn <arn>
   EOT
-}
-
-# ==============================================================================
-# DATABRICKS
-# ==============================================================================
-
-output "foreign_catalog_name" {
-  value       = databricks_catalog.rds_foreign.name
-  description = "Lakehouse Federation catalog — query live: SELECT * FROM rds_foreign.mydb.employees"
-}
-
-output "bronze_schema" {
-  value       = "${databricks_schema.staging.catalog_name}.${databricks_schema.staging.name}"
-  description = "UC schema where bronze Delta tables are written"
-}
-
-output "ingestion_job_id" {
-  value       = databricks_job.cdc_ingestion.id
-  description = "Trigger manually: databricks jobs run-now --job-id <id>"
 }

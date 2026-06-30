@@ -1,0 +1,16 @@
+# ==============================================================================
+# terraform.tfvars.example  (AWS layer)
+# Copy to terraform.tfvars and fill in your values:
+#     cp terraform.tfvars.example terraform.tfvars
+#
+# terraform.tfvars is gitignored (**/*.tfvars) — never commit it.
+# Both values below are sensitive.
+# ==============================================================================
+
+# Databricks account UUID — used as the STS ExternalId in the IAM trust policy.
+# Find it at accounts.databricks.com (in the URL or the top-right profile menu).
+databricks_account_id = "00000000-0000-0000-0000-000000000000"
+
+# RDS MySQL admin password.
+# Alternatively set TF_VAR_db_password in the environment instead of this file.
+db_password = "change-me"

@@ -2,14 +2,14 @@
 
 This repository contains elements and experiments from my journey as I learn about 
 Databricks Platform Engineering. Below are the main areas of focus, each referencing a section of the codebase where more detailed
-documentation can be found. The flagship example is the [`lakeflow_connect`](Databricks/terraform/lakeflow_connect/) full-stack AWS CDC pipeline.
+documentation can be found. The flagship example is the [`lakeflow_connect`](lakeflow_connect/) full-stack AWS CDC pipeline.
 
 ### Musings
 
 While Terraform can do many things, its core strength is managing workspace infrastructure. Declarative Automation Bundles (DABs) offer a more natural fit for orchestrating jobs, pipelines, and notebooks within Databricks. Used together, 
 each handles what it does best.
 
->:heart: ***The [`lakeflow_connect`](Databricks/terraform/lakeflow_connect/) project is where that exploration comes together — a full-stack CDC pipeline from AWS RDS MySQL through DMS and S3 into Databricks Unity Catalog, with Lakehouse Federation for live querying, all provisioned end-to-end with Terraform.***
+>:heart: ***The [`lakeflow_connect`](lakeflow_connect/) project is where that exploration comes together — a full-stack CDC pipeline from AWS RDS MySQL through DMS and S3 into Databricks Unity Catalog, with Lakehouse Federation for live querying, all provisioned end-to-end with Terraform.***
  
 # Overview
 
@@ -22,7 +22,7 @@ Highlights:
 - **Config-driven per domain** — the whole pipeline is declared in one `terraform.tfvars` `domains` map; adding a source system needs no new code.
 - **Cloud-pluggable** — a `source_infrastructure.type` discriminator isolates the cloud-specific wiring (only `aws` today; `azure`/`gcp` slot in without changing the interface).
 - **Read-only-source friendly** — Auto Loader checkpoints + inferred schema live in a UC managed volume under the bronze schema, so the source bucket needs no write access.
-- **Reference:** [`Databricks/terraform/lakeflow_connect/`](Databricks/terraform/lakeflow_connect/)
+- **Reference:** [`lakeflow_connect/`](lakeflow_connect/)
 
 ## CI/CD — GitHub Actions
 Automated deployment, dependency building, and testing pipelines.
@@ -30,11 +30,11 @@ Automated deployment, dependency building, and testing pipelines.
 
 ## Other Asset Bundles
 Standalone Declarative Automation Bundles exploring the Bronze → Silver → Gold transformation lifecycle — `daily_capitals_weather` (weather ingestion) and `wc_bundle` (a Silver/Gold pipeline triggered when its upstream bronze updates).
-- **Reference:** [`Databricks/bundles/`](Databricks/bundles/)
+- **Reference:** [`explorations/bundles/`](explorations/bundles/)
 
 ## Secrets & Privacy
 A reusable `vault_secrets` Terraform module that pulls credentials from **HashiCorp Vault** (KV v2) at plan/apply time, keeping secrets out of code and `terraform.tfvars`. A separate exploration — not yet wired into the CDC pipeline, which currently authenticates via environment variables.
-- **Reference:** [`Databricks/terraform/modules/vault_secrets/`](Databricks/terraform/modules/vault_secrets/)
+- **Reference:** [`explorations/terraform/modules/vault_secrets/`](explorations/terraform/modules/vault_secrets/)
 
 
 

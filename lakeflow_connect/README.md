@@ -12,10 +12,10 @@ best:
   `cdc_bronze_ingest` wheel and deploys each domain's
   UC assets and Auto Loader ingestion job.
 
-A "domain" is an **external source system, not a cloud stack**. Each domain's
+A "domain" is an **external source system**. Each domain's
 landing infrastructure (e.g. an S3 bucket + IAM role) is assumed to already exist; the
 [`aws/`](aws/) directory is a **single worked example** showing how to stand one
-up end-to-end (RDS → DMS → S3 + IAM).
+up end-to-end (RDS → DMS → S3 + IAM). 
 
 > The goal was [Databricks Lakeflow
 > Connect](https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/), but
@@ -64,7 +64,7 @@ job; **pre-existing** per domain is the bucket + IAM role.
 
 Each domain declares a `source_infrastructure` with a `type` discriminator. Only
 `type = "aws"` is implemented today; adding `azure`/`gcp` later means one new
-credential auth block + one storage-URI map entry in `modules/domain_ingest` — the
+credential auth block + one storage-URI map entry in `modules/domain_ingest`. Some minor edits may need to be made to the terraform structure, but the
 domain interface and the DAB stay unchanged.
 
 ## Deploy

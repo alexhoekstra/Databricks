@@ -19,6 +19,13 @@ build/
 dist/
 *.egg-info/
 
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+
+# Databricks bundle artifacts
+.databricks/
+
 
 
 # Do NOT ignore your template file if you have one

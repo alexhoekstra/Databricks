@@ -1,7 +1,7 @@
 # Configuration Driven Scalable Ingestion — Terraform
 
 Terraform configuration for a configuration-driven, scalable ingestion framework that extracts data from external
-sources and loads it into a bronze table. See [`wc_bundle`](/Databricks/bundles/wc_bundle/) for an example 
+sources and loads it into a bronze table. See [`wc_bundle`](/explorations/bundles/wc_bundle/) for an example 
 Declarative Automation Bundle that is triggered off a bronze table update from a domain.
 
 ---
@@ -30,7 +30,7 @@ Each domain is provisioned through the `domain_batch_ingest` module, which creat
 The job runs on a configurable cron schedule (paused by default) and can optionally be configured to run as a existing service principal. 
 
 ### Dependencies :
-Both tasks are configured to run a python_wheel_task. This github repo is configured with a [github action](/.github/workflows/build_deply_module_wheels.yml) that will build wheels for any modules listed in [`/Databricks/notebooks/modules`](/Databricks/notebooks/modules) and upload them to Databricks at `/Workspace/Shared/modules/{module_name}`.
+Both tasks are configured to run a python_wheel_task. This github repo is configured with a [github action](/.github/workflows/build_deply_module_wheels.yml) that will build wheels for any modules listed in [`/explorations/notebooks/modules`](/explorations/notebooks/modules) and upload them to Databricks at `/Workspace/Shared/modules/{module_name}`.
 
 ---
 

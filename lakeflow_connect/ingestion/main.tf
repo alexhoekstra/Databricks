@@ -9,7 +9,7 @@
 # location + optional federation, and generates the DAB job resource file.
 #
 # Apply order: this root first (creates UC governance + generates job ymls), then
-# `databricks bundle deploy` in Databricks/terraform/lakeflow_connect/bundles/lakeflow_connect.
+# `databricks bundle deploy` in lakeflow_connect/bundles/lakeflow_connect.
 # ==============================================================================
 
 terraform {

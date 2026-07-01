@@ -55,7 +55,7 @@ Passed as `named_parameters` (`--key value`) by the wheel task or CLI:
 ## Build
 
 ```bash
-cd Databricks/terraform/lakeflow_connect/bundles/lakeflow_connect/cdc_bronze_ingest
+cd lakeflow_connect/bundles/lakeflow_connect/cdc_bronze_ingest
 pip install build
 python -m build --wheel        # -> dist/cdc_bronze_ingest-0.1.0-py3-none-any.whl
 ```

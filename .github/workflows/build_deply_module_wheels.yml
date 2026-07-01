@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'Databricks/notebooks/modules/**'
+      - 'explorations/notebooks/modules/**'
     # Adds a "Run workflow" button in the GitHub Actions UI
   workflow_dispatch: 
 
@@ -26,7 +26,7 @@ jobs:
 
       - name: Build wheels
         run: |
-          find Databricks/notebooks/modules -name "pyproject.toml" | while read pyproject; do
+          find explorations/notebooks/modules -name "pyproject.toml" | while read pyproject; do
             module_dir=$(dirname "$pyproject")
             module_name=$(basename "$module_dir")
 
@@ -44,7 +44,7 @@ jobs:
           DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
           DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
         run: |
-          find Databricks/notebooks/modules -name "pyproject.toml" | while read -r pyproject; do
+          find explorations/notebooks/modules -name "pyproject.toml" | while read -r pyproject; do
             module_dir=$(dirname "$pyproject")
             module_name=$(basename "$module_dir")
 

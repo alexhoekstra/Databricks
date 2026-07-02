@@ -1,0 +1,27 @@
+# ==============================================================================
+# terraform.tfvars.example  (data_quality)
+# Copy to terraform.tfvars (gitignored). Point at declarative_bronze outputs.
+# ==============================================================================
+
+warehouse_id = "<serverless-sql-warehouse-id>"
+
+monitored_tables = {
+  orders_bronze = {
+    table         = "main.sales.orders_bronze"
+    layer         = "bronze"
+    freshness_sla = "24h"
+    # bronze => operational metrics: freshness, volume, _rescued_data rate, coverage.
+  }
+
+  orders_silver = {
+    table        = "main.sales.orders_silver"
+    layer        = "silver"
+    primary_keys = ["order_id"]
+    checks = {
+      total_non_negative = "total_amount >= 0"
+      status_known       = "status IN ('new','shipped','cancelled')"
+    }
+    # silver => conformance metrics: expectations/quarantine, PK uniqueness, SCD,
+    # bronze->silver reconciliation, distribution drift.
+  }
+}

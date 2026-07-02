@@ -1,0 +1,16 @@
+# ==============================================================================
+# terraform.tfvars.example
+# Copy to terraform.tfvars and fill in:
+#     cp terraform.tfvars.example terraform.tfvars
+# ==============================================================================
+
+databricks_account_id = "00000000-0000-0000-0000-000000000000"
+
+region = "us-east-2"
+
+landing_bucket = "CHANGE_ME"
+
+# seed_enabled = false
+# seed_date = "2026-07-01"
+# role_name = "CHANGE_ME"  # optional override
+# force_destroy_bucket = true 

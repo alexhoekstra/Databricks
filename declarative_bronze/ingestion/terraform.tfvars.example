@@ -1,0 +1,18 @@
+# ==============================================================================
+# terraform.tfvars.example
+# Copy to terraform.tfvars and fill in.
+# ==============================================================================
+
+target_catalog = "main"
+target_schema  = "declarative_bronze"
+
+continuous = false
+
+# grantee = "you@example.com"   # optional; defaults to the running identity
+
+source_domain = {
+  type     = "aws"
+  role_arn = "arn:aws:iam::<acct>:role/defense-uc-s3-access"
+  bucket   = "defense-programs-landing-CHANGEME"
+  format   = "parquet"
+}

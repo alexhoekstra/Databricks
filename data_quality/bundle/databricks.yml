@@ -1,0 +1,21 @@
+# Databricks Asset Bundle for data_quality.   [SCAFFOLD — TODO implement]
+#
+# Owns the layer-aware check source (src/run_checks.py). Terraform (../checks)
+# owns the job, alerts, dashboard, and results schema.
+bundle:
+  name: data_quality
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-97f240ad-c636.cloud.databricks.com
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-97f240ad-c636.cloud.databricks.com

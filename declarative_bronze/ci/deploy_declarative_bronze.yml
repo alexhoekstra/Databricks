@@ -1,0 +1,119 @@
+# GitHub Actions workflow for declarative_bronze.
+name: deploy-declarative-bronze
+
+on:
+  push:
+    branches: [main]
+    paths: ["declarative_bronze/**"]
+  pull_request:
+    paths: ["declarative_bronze/**"]
+  workflow_dispatch: # manual "Run workflow" button
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  # ===========================================================================
+  # PR gate — static, no secrets, no cloud.
+  # ===========================================================================
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      # `databricks bundle validate -t dev` resolves current_user (development
+      # mode), so it needs auth. Same-repo branch PRs get these secrets; the
+      # terraform + py_compile steps below run fine without them (fork PRs).
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform fmt (declarative_bronze)
+        working-directory: declarative_bronze/ingestion
+        run: terraform fmt -check -recursive ..
+
+      - name: Terraform validate (ingestion)
+        working-directory: declarative_bronze/ingestion
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+
+      - name: Render pipeline.gen.yml from the example config
+        working-directory: declarative_bronze/ingestion
+        run: |
+          cp terraform.tfvars.example terraform.tfvars
+          # Regenerate ONLY the resource file — no cloud, no auth (see header).
+          terraform apply -auto-approve -input=false -target=local_file.pipeline
+          test -f ../bundle/resources/pipeline.gen.yml
+          echo "----- generated pipeline.gen.yml -----"
+          cat ../bundle/resources/pipeline.gen.yml
+
+      - name: Install Databricks CLI
+        run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+      - name: Databricks bundle validate
+        working-directory: declarative_bronze/bundle
+        run: databricks bundle validate -t dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Syntax-check the DLT source
+        run: python -m py_compile declarative_bronze/bundle/src/ingest_bronze.py
+
+  # ===========================================================================
+  # Deploy — on merge to main (or manual dispatch). Regenerates the resource
+  # file from the REAL config (secret tfvars), then deploys the bundle to prod.
+  # ===========================================================================
+  deploy:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Materialize terraform.tfvars from secret
+        working-directory: declarative_bronze/ingestion
+        env:
+          TFVARS: ${{ secrets.DECLARATIVE_BRONZE_TFVARS }}
+        run: |
+          if [ -z "$TFVARS" ]; then
+            echo "::error::Secret DECLARATIVE_BRONZE_TFVARS is not set. Add the prod" \
+                 "sources config (same shape as terraform.tfvars.example) as a repo secret."
+            exit 1
+          fi
+          printf '%s' "$TFVARS" > terraform.tfvars
+
+      - name: Regenerate pipeline.gen.yml from prod config
+        working-directory: declarative_bronze/ingestion
+        run: |
+          terraform init -backend=false -input=false
+          terraform apply -auto-approve -input=false -target=local_file.pipeline
+          test -f ../bundle/resources/pipeline.gen.yml
+
+      - name: Install Databricks CLI
+        run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+      - name: Deploy bundle (prod)
+        working-directory: declarative_bronze/bundle
+        run: databricks bundle deploy --target prod

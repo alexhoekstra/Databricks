@@ -1,0 +1,22 @@
+# Databricks Asset Bundle for declarative_bronze.
+bundle:
+  name: declarative_bronze
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-97f240ad-c636.cloud.databricks.com
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-97f240ad-c636.cloud.databricks.com
+      root_path: /Workspace/Users/alex.hoekstra618+databricks@gmail.com/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: alex.hoekstra618+databricks@gmail.com
+        level: CAN_MANAGE

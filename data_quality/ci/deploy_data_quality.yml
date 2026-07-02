@@ -1,0 +1,23 @@
+# GitHub Actions workflow for data_quality.   [SCAFFOLD — TODO implement]
+
+name: deploy-data-quality
+
+on:
+  push:
+    branches: [main]
+    paths: ["data_quality/**"]
+  pull_request:
+    paths: ["data_quality/**"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      # TODO: setup terraform + databricks CLI
+      # - PR:    terraform plan (checks/) + databricks bundle validate (bundle/)
+      # - main:  terraform apply + databricks bundle deploy -t prod

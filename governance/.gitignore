@@ -1,2 +1,6 @@
 # local backend config; CI passes -backend-config flags instead
 backend.hcl
+
+# committed on purpose (overrides root **/*.tfvars): catalog/schema config the
+# CI apply job needs; contains no secrets — auth comes from env vars
+!terraform.tfvars

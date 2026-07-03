@@ -5,6 +5,10 @@ bundle:
 include:
   - resources/*.yml
 
+# NOTE: workspace.host must be a literal — the Databricks CLI rejects ${var.*}
+# interpolation for auth-configuring fields. The URL is non-secret; deploy to a
+# different workspace by editing it here (or add a target). Auth itself comes
+# from the DATABRICKS_HOST/DATABRICKS_TOKEN env vars (or a profile).
 targets:
   dev:
     mode: development
@@ -16,7 +20,4 @@ targets:
     mode: production
     workspace:
       host: https://dbc-97f240ad-c636.cloud.databricks.com
-      root_path: /Workspace/Users/alex.hoekstra618+databricks@gmail.com/.bundle/${bundle.name}/${bundle.target}
-    permissions:
-      - user_name: alex.hoekstra618+databricks@gmail.com
-        level: CAN_MANAGE
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}

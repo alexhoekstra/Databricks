@@ -1,0 +1,10 @@
+{
+  "_comment": "Deliberately broken fixture — the linter must fail on this.",
+  "teams": {
+    "broken_team": {
+      "schema_grants": {
+        "hr/silver": ["USE_SCHEMA", "SELECT", "DELETE"]
+      }
+    }
+  }
+}

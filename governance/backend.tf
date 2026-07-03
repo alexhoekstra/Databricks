@@ -1,14 +1,8 @@
 # ==============================================================================
-# versions.tf
+# backend.tf
 # ==============================================================================
 
+# Settings come from -backend-config (backend.hcl locally, CI flags in the workflow).
 terraform {
-  required_version = ">= 1.6"
-
-  required_providers {
-    databricks = {
-      source  = "databricks/databricks"
-      version = "~> 1.120"
-    }
-  }
+  backend "s3" {}
 }

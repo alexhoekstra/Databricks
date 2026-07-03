@@ -25,9 +25,33 @@ variable "target_schema" {
 }
 
 variable "continuous" {
-  description = "Pipeline-level run-mode toggle"
+  description = "Pipeline-level run-mode toggle. false=triggered (auto-stops). true=continuous, but a continuous bronze update holds the single account-wide active-update slot and starves the curated (silver) pipeline in bundle_curated — use it only for bounded demos while bundle_curated is undeployed. The declarative_medallion orchestration job owns scheduling."
   type        = bool
   default     = false
+}
+
+variable "fail_on_empty" {
+  description = "When true, the pipeline raises if discovery finds no files (guards against silent data loss). Set false only for bootstrap runs against an empty bucket."
+  type        = bool
+  default     = true
+}
+
+variable "include_tables" {
+  description = "Optional allow-list of file stems to ingest (empty = all). Joined into the pipeline's include_tables config key."
+  type        = list(string)
+  default     = []
+}
+
+variable "exclude_tables" {
+  description = "Optional deny-list of file stems to skip (empty = none; wins over include_tables). Joined into the pipeline's exclude_tables config key."
+  type        = list(string)
+  default     = []
+}
+
+variable "notification_emails" {
+  description = "Emails to notify on pipeline update/flow failure. Empty = no notifications block is emitted."
+  type        = list(string)
+  default     = []
 }
 
 variable "grantee" {

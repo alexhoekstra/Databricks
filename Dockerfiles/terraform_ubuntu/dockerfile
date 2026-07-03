@@ -18,10 +18,29 @@ RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/sh
 # Add the official HashiCorp Debian repository to apt sources
 RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
 
-# Update the package lists and install Terraform
+# Update the package lists and install Terraform, Python, and unzip.
+# python3/python3-pip: run the helper scripts (e.g. governance/sample_data).
+# unzip: required by the Databricks CLI installer, which downloads a zip.
 RUN apt-get update && apt-get install -y \
     terraform \
+    python3 \
+    python3-pip \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Install the Databricks CLI (standalone Go binary → /usr/local/bin/databricks).
+# Download then run so an HTTP failure (curl -f) fails the build instead of
+# silently piping empty input to sh.
+RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh -o /tmp/install-databricks.sh \
+    && sh /tmp/install-databricks.sh \
+    && rm /tmp/install-databricks.sh \
+    && databricks version
+
+# Install the Databricks SDK for Python. --break-system-packages: Ubuntu marks
+# the base interpreter as externally managed (PEP 668), and the helper scripts
+# import the SDK from that system interpreter.
+RUN pip3 install --break-system-packages --no-cache-dir databricks-sdk \
+    && python3 -c "import databricks.sdk"
 
 # Set the default working directory inside the container
 WORKDIR /workspace

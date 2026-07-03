@@ -1,0 +1,49 @@
+{
+  "_comment": "Access-as-code matrix. This file is the ONLY thing an access request edits (plus members/*.csv).",
+  "teams": {
+    "platform_engineers": {
+      "schema_grants": {
+        "hr/bronze": ["USE_SCHEMA", "SELECT", "MODIFY"],
+        "hr/silver": ["USE_SCHEMA", "SELECT", "MODIFY"],
+        "hr/gold": ["USE_SCHEMA", "SELECT", "MODIFY"],
+        "finance/bronze": ["USE_SCHEMA", "SELECT", "MODIFY"],
+        "finance/silver": ["USE_SCHEMA", "SELECT", "MODIFY"],
+        "finance/gold": ["USE_SCHEMA", "SELECT", "MODIFY"],
+        "programs/bronze": ["USE_SCHEMA", "SELECT", "MODIFY"],
+        "programs/silver": ["USE_SCHEMA", "SELECT", "MODIFY"],
+        "programs/gold": ["USE_SCHEMA", "SELECT", "MODIFY"]
+      }
+    },
+    "hr_analysts": {
+      "schema_grants": {
+        "hr/silver": ["USE_SCHEMA", "SELECT"],
+        "hr/gold": ["USE_SCHEMA", "SELECT"]
+      }
+    },
+    "finance_analysts": {
+      "schema_grants": {
+        "finance/silver": ["USE_SCHEMA", "SELECT"],
+        "finance/gold": ["USE_SCHEMA", "SELECT"],
+        "programs/gold": ["USE_SCHEMA", "SELECT"]
+      }
+    },
+    "program_managers": {
+      "schema_grants": {
+        "programs/silver": ["USE_SCHEMA", "SELECT"],
+        "programs/gold": ["USE_SCHEMA", "SELECT"],
+        "hr/gold": ["USE_SCHEMA", "SELECT"],
+        "finance/gold": ["USE_SCHEMA", "SELECT"]
+      }
+    },
+    "pii_readers": {
+      "schema_grants": {
+        "hr/silver": ["USE_SCHEMA", "SELECT"]
+      }
+    },
+    "export_cleared": {
+      "schema_grants": {
+        "programs/silver": ["USE_SCHEMA", "SELECT"]
+      }
+    }
+  }
+}

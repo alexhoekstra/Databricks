@@ -10,6 +10,13 @@ continuous = false
 
 # grantee = "you@example.com"   # optional; defaults to the running identity
 
+# Optional discovery allow/deny filter (comma-free lists of file stems):
+# include_tables = ["programs", "contracts"]   # ingest only these
+# exclude_tables = ["scratch"]                  # never ingest these (wins over include)
+
+# Optional failure notifications (real email as a placeholder; empty = no alerts):
+# notification_emails = ["alex.hoekstra618@gmail.com"]
+
 source_domain = {
   type     = "aws"
   role_arn = "arn:aws:iam::<acct>:role/defense-uc-s3-access"

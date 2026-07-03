@@ -1,0 +1,8 @@
+# Copy to backend.hcl (gitignored), fill in, then one time:
+#   terraform init -migrate-state -backend-config=backend.hcl
+
+bucket       = "REPLACE-with-your-tf-state-bucket"
+key          = "governance/terraform.tfstate"
+region       = "us-east-2"
+encrypt      = true
+use_lockfile = true

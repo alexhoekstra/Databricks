@@ -20,3 +20,17 @@ resources:
       configuration:
         "declarative_bronze.path": "${domain_path}"
         "declarative_bronze.format": "${domain_format}"
+        "declarative_bronze.fail_on_empty": "${fail_on_empty}"
+        "declarative_bronze.include_tables": "${include_tables}"
+        "declarative_bronze.exclude_tables": "${exclude_tables}"
+%{ if length(notification_emails) > 0 ~}
+      notifications:
+        - email_recipients:
+%{ for email in notification_emails ~}
+            - ${email}
+%{ endfor ~}
+          alerts:
+            - on-update-failure
+            - on-update-fatal-failure
+            - on-flow-failure
+%{ endif ~}

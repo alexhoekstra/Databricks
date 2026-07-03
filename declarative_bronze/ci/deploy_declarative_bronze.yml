@@ -9,12 +9,20 @@ on:
     paths: ["declarative_bronze/**"]
   workflow_dispatch: # manual "Run workflow" button
 
+# Serialize runs so two deploys can't overlap (never cancel an in-flight deploy).
+concurrency:
+  group: deploy-declarative-bronze
+  cancel-in-progress: false
+
 defaults:
   run:
     shell: bash
 
 env:
   TF_IN_AUTOMATION: "true"
+  # Pin the Databricks CLI for reproducible CI (bump deliberately). Matches the
+  # version validated locally against these bundles.
+  DATABRICKS_CLI_VERSION: "1.4.0"
 
 jobs:
   # ===========================================================================
@@ -26,7 +34,7 @@ jobs:
     env:
       # `databricks bundle validate -t dev` resolves current_user (development
       # mode), so it needs auth. Same-repo branch PRs get these secrets; the
-      # terraform + py_compile steps below run fine without them (fork PRs).
+      # terraform + ruff steps below run fine without them (fork PRs).
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
@@ -58,24 +66,40 @@ jobs:
           echo "----- generated pipeline.gen.yml -----"
           cat ../bundle/resources/pipeline.gen.yml
 
-      - name: Install Databricks CLI
-        run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+      - name: Assert the generated resource file is gitignored
+        run: git check-ignore declarative_bronze/bundle/resources/pipeline.gen.yml
 
-      - name: Databricks bundle validate
+      - name: Install Databricks CLI
+        run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh -s -- --version "$DATABRICKS_CLI_VERSION"
+
+      - name: Databricks bundle validate (bronze)
         working-directory: declarative_bronze/bundle
         run: databricks bundle validate -t dev
+
+      - name: Databricks bundle validate (curated)
+        working-directory: declarative_bronze/bundle_curated
+        # bronze_pipeline_id is a lookup resolved at deploy time; override with a
+        # placeholder so structural validation doesn't require the pipeline to exist.
+        run: databricks bundle validate -t dev --var="bronze_pipeline_id=0"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Syntax-check the DLT source
-        run: python -m py_compile declarative_bronze/bundle/src/ingest_bronze.py
+      - name: Lint the DLT sources (ruff)
+        run: |
+          pip install ruff
+          ruff check declarative_bronze/bundle/src/ declarative_bronze/bundle_curated/src/
 
   # ===========================================================================
   # Deploy — on merge to main (or manual dispatch). Regenerates the resource
-  # file from the REAL config (secret tfvars), then deploys the bundle to prod.
+  # file from the REAL config (secret tfvars), then deploys BOTH bundles to prod
+  # (bronze first so the curated bundle's pipeline lookup resolves).
+  #
+  # NOTE: Terraform state is local, so CI does NOT `terraform apply` the UC
+  # resources — it only regenerates the bronze resource file and deploys bundles.
+  # The curated bundle is fully hand-authored: no Terraform step touches it.
   # ===========================================================================
   deploy:
     if: github.event_name != 'pull_request'
@@ -112,8 +136,12 @@ jobs:
           test -f ../bundle/resources/pipeline.gen.yml
 
       - name: Install Databricks CLI
-        run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+        run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh -s -- --version "$DATABRICKS_CLI_VERSION"
 
-      - name: Deploy bundle (prod)
+      - name: Deploy bronze bundle (prod)
         working-directory: declarative_bronze/bundle
+        run: databricks bundle deploy --target prod
+
+      - name: Deploy curated bundle (prod)
+        working-directory: declarative_bronze/bundle_curated
         run: databricks bundle deploy --target prod

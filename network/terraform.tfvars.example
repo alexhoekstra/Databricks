@@ -1,0 +1,48 @@
+# ==============================================================================
+# terraform.tfvars.example
+# ==============================================================================
+
+aws_region      = "us-east-2"
+resource_prefix = "dbx-net"
+
+# Set false if that root is currently applied in this account.
+create_dms_vpc_role = true
+
+vpcs = {
+  # Hosts Databricks clusters (the customer-managed VPC a workspace_vending
+  # entry would consume).
+  workspace = {
+    cidr                        = "10.20.0.0/20" # /24 subnets: private .0/.1, public .8/.9
+    enable_databricks_endpoints = true           # S3 gateway + STS/Kinesis interface trio
+  }
+
+  # DMS landing side — wiring only (subnet group + SG), no replication
+  # instance. Clusters don't run here, so no endpoint trio.
+  ingest = {
+    cidr                        = "10.21.0.0/20"
+    enable_databricks_endpoints = false
+    create_dms_subnet_group     = true
+  }
+}
+
+peerings = {
+  workspace_ingest = {
+    requester = "workspace"
+    accepter  = "ingest"
+    allow = [
+      {
+        description  = "Databricks clusters to DMS/MySQL side of the ingest VPC"
+        from_port    = 3306
+        to_port      = 3306
+        ingress_side = "accepter"
+        target_sg    = "dms"
+      },
+      {
+        description  = "Ingest VPC to Databricks SG on 443"
+        from_port    = 443
+        to_port      = 443
+        ingress_side = "requester"
+      },
+    ]
+  }
+}

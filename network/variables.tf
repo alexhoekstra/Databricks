@@ -1,5 +1,5 @@
 # ==============================================================================
-# variables.tf  (network root)
+# variables.tf
 # ==============================================================================
 
 variable "aws_region" {
@@ -23,8 +23,7 @@ variable "create_dms_vpc_role" {
   description = <<-EOT
     Create the account-level IAM role named exactly `dms-vpc-role` that AWS
     requires before CreateReplicationSubnetGroup. Set false if that root is currently applied in this
-    account (EntityAlreadyExists otherwise). Note the reverse hazard too: this
-    root's destroy removes the role out from under any live DMS instance.
+    account (EntityAlreadyExists otherwise).
   EOT
   type        = bool
   default     = true
@@ -34,9 +33,7 @@ variable "vpcs" {
   description = <<-EOT
     Map of VPC key -> configuration. The single source of truth for which VPCs
     exist: adding a VPC = adding one entry here. Each entry becomes one
-    modules/databricks_vpc instance (VPC, 2-AZ private/public subnets, NAT,
-    route tables, Databricks security group, optional endpoint trio, optional
-    DMS wiring).
+    modules/databricks_vpc instance
   EOT
 
   type = map(object({

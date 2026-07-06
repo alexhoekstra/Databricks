@@ -1,7 +1,5 @@
 # ==============================================================================
-# guard.tf  (network root)
-# Cross-entry invariants the per-variable validations can't express. Same
-# terraform_data + precondition pattern as governance/ and workspace_vending/.
+# guard.tf
 # ==============================================================================
 
 resource "terraform_data" "network_guard" {

@@ -1,9 +1,6 @@
 # ==============================================================================
-# vpcs.tf  (network root)
-# One modules/databricks_vpc instance per entry in var.vpcs — the same
-# config-driven pattern as workspace_vending's workspaces map. Peering between
-# instances is stitched at the root (peering.tf): it's inherently
-# cross-instance, so the module stays peer-agnostic.
+# vpcs.tf
+# One modules/databricks_vpc instance per entry in var.vpcs
 # ==============================================================================
 
 module "databricks_vpc" {
@@ -18,8 +15,5 @@ module "databricks_vpc" {
   create_dms_subnet_group     = each.value.create_dms_subnet_group
   nat_per_az                  = each.value.nat_per_az
   tags                        = each.value.tags
-
-  # DMS subnet groups need the account-level dms-vpc-role first. Module-wide
-  # depends_on is coarse, but the wait is 15s and runs once, in parallel.
   depends_on = [time_sleep.dms_vpc_propagation]
 }

@@ -1,5 +1,5 @@
 # ==============================================================================
-# endpoints.tf  (databricks_vpc module)
+# endpoints.tf
 # The standard Databricks endpoint trio, so cluster traffic to S3/STS/Kinesis
 # stays on the AWS backbone instead of transiting the NAT gateway:
 #   - S3: gateway endpoint, attached to every private route table (free)
@@ -51,8 +51,7 @@ resource "aws_vpc_endpoint" "kinesis" {
 #
 # Full private connectivity to the Databricks control plane adds two more
 # interface endpoints pointed at Databricks-published endpoint services (the
-# regional vpce-svc-* ids live in the Databricks PrivateLink docs — look them
-# up, never hardcode from memory):
+# regional vpce-svc-* ids live in the Databricks PrivateLink docs):
 #
 # resource "aws_vpc_endpoint" "databricks_rest_api" {
 #   vpc_id              = aws_vpc.this.id
@@ -72,7 +71,7 @@ resource "aws_vpc_endpoint" "kinesis" {
 #   private_dns_enabled = false
 # }
 #
-# Each then gets registered at the account level (workspace_vending territory):
+# Each then gets registered at the account level:
 # databricks_mws_vpc_endpoint x2, referenced from databricks_mws_networks'
 # vpc_endpoints { rest_api = [...], dataplane_relay = [...] }, plus a
 # databricks_mws_private_access_settings attached to the workspace.

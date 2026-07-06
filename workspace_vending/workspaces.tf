@@ -1,8 +1,6 @@
 # ==============================================================================
 # workspaces.tf
-# One modules/workspace instance per entry in var.workspaces. Each instance vends
-# the AWS prerequisites (cross-account IAM role, root bucket) plus the four
-# account-level mws_* registrations and the admin-group baseline.
+# One modules/workspace instance per entry in var.workspaces.
 # ==============================================================================
 
 module "workspace" {

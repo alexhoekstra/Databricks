@@ -1,12 +1,7 @@
 # ==============================================================================
-# iam.tf  (workspace module)
+# iam.tf
 # Cross-account credentials role the Databricks control plane assumes to run
-# workspace compute in this AWS account.
-#
-# Both policy documents come from databricks provider data sources that are
-# computed locally:
-#   - databricks_aws_crossaccount_policy: the Databricks-published EC2/VPC
-#     cross-account policy (~30 statements — not worth hand-writing).
+# workspace compute in the AWS account.
 # ==============================================================================
 
 data "databricks_aws_assume_role_policy" "this" {
@@ -28,9 +23,6 @@ resource "aws_iam_role_policy" "cross_account" {
   role   = aws_iam_role.cross_account.id
   policy = data.databricks_aws_crossaccount_policy.this.json
 }
-
-# IAM is eventually consistent; registering the role with Databricks too soon
-# fails validation. Same pattern as declarative_bronze/provisioning.
 resource "time_sleep" "iam_propagation" {
   create_duration = "20s"
 

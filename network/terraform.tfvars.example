@@ -1,11 +1,10 @@
 # ==============================================================================
-# terraform.tfvars.example  (network root)
+# terraform.tfvars.example
 # ==============================================================================
 
 aws_region      = "us-east-2"
 resource_prefix = "dbx-net"
 
-# lakeflow_connect/aws also creates the account-level dms-vpc-role.
 # Set false if that root is currently applied in this account.
 create_dms_vpc_role = true
 
@@ -32,7 +31,6 @@ peerings = {
     accepter  = "ingest"
     allow = [
       {
-        # NOTE: AWS SG rule descriptions forbid ">" — no "->" arrows here.
         description  = "Databricks clusters to DMS/MySQL side of the ingest VPC"
         from_port    = 3306
         to_port      = 3306
@@ -40,7 +38,7 @@ peerings = {
         target_sg    = "dms"
       },
       {
-        description  = "Ingest VPC to Databricks SG on 443 (reverse-path demo)"
+        description  = "Ingest VPC to Databricks SG on 443"
         from_port    = 443
         to_port      = 443
         ingress_side = "requester"

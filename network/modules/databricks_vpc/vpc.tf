@@ -1,14 +1,6 @@
 # ==============================================================================
-# vpc.tf  (databricks_vpc module)
+# vpc.tf
 # VPC + subnets per the Databricks customer-managed-VPC requirements:
-#   - DNS support AND DNS hostnames enabled (hard requirement, also needed for
-#     private_dns_enabled interface endpoints)
-#   - private subnets in >= 2 AZs, netmask within /17../26 (enforced by the
-#     cidr variable validation + newbits = 4 math)
-#   - subnets must not be shared between workspaces (enforced cross-entry by
-#     workspace_vending/guard.tf on the consuming side)
-# Public subnets exist only to host the NAT gateway(s); Databricks clusters
-# live in the private subnets.
 # ==============================================================================
 
 resource "aws_vpc" "this" {

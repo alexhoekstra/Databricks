@@ -1,7 +1,5 @@
 # ==============================================================================
-# versions.tf  (network root)
-#
-# No backend block on purpose, this root is ephemeral. 
+# versions.tf
 # ==============================================================================
 
 terraform {

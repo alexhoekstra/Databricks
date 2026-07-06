@@ -1,11 +1,9 @@
 # ==============================================================================
-# mws.tf  (workspace module)
-# The four account-level (mws_*) registrations: credentials, storage
-# configuration, network, then the workspace that ties them together.
+# mws.tf 
+# Account-level (mws_*) registrations: credentials, storage configuration, network
 # ==============================================================================
 
 resource "databricks_mws_credentials" "this" {
-  # account_id is deprecated on this resource (comes from the provider block).
   credentials_name = "${var.resource_prefix}-${var.workspace_key}-creds"
   role_arn         = aws_iam_role.cross_account.arn
 
@@ -37,7 +35,6 @@ resource "databricks_mws_workspaces" "this" {
   storage_configuration_id = databricks_mws_storage_configurations.this.storage_configuration_id
   network_id               = databricks_mws_networks.this.network_id
 
-  # Both null-safe: null means "let the API pick".
   deployment_name = var.deployment_name
   pricing_tier    = var.pricing_tier
 

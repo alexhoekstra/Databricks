@@ -1,7 +1,5 @@
 # ==============================================================================
 # s3.tf 
-# Workspace root (DBFS root) bucket + the repo's standard hardening stack
-# plus the Databricks bucket policy — also generated locally by the provider, no API call.
 # ==============================================================================
 
 resource "aws_s3_bucket" "root" {
@@ -42,6 +40,6 @@ resource "aws_s3_bucket_policy" "root" {
   policy = data.databricks_aws_bucket_policy.root.json
 
   # block_public_policy must land before a bucket policy is attached, or AWS
-  # intermittently rejects the put.
+  # sometimes rejects it.
   depends_on = [aws_s3_bucket_public_access_block.root]
 }

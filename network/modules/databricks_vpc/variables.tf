@@ -1,5 +1,5 @@
 # ==============================================================================
-# variables.tf  (databricks_vpc module)
+# variables.tf
 # ==============================================================================
 
 variable "name" {
@@ -41,7 +41,7 @@ variable "cidr" {
 }
 
 variable "az_count" {
-  description = "Number of availability zones (Databricks requires private subnets in at least 2)."
+  description = "Number of availability zones."
   type        = number
   default     = 2
 
@@ -58,19 +58,19 @@ variable "enable_databricks_endpoints" {
 }
 
 variable "create_dms_subnet_group" {
-  description = "Create a DMS replication subnet group + DMS security group in this VPC (wiring only — no replication instance). Requires the account-level dms-vpc-role to exist first (sequenced at the root)."
+  description = "Create a DMS replication subnet group + DMS security group in this VPC. Requires the account-level dms-vpc-role to exist first."
   type        = bool
   default     = false
 }
 
 variable "nat_per_az" {
-  description = "One NAT gateway per AZ (prod HA pattern) instead of a single shared one (cheap demo default). Route tables are per-AZ either way, so flipping this only changes routes."
+  description = "One NAT gateway per AZ instead of a single shared one. Route tables are per-AZ either way, so flipping this only changes routes."
   type        = bool
   default     = false
 }
 
 variable "tags" {
-  description = "Extra tags merged onto this VPC's resources (project-wide tags come from the provider default_tags)."
+  description = "Extra tags merged onto this VPC's resources."
   type        = map(string)
   default     = {}
 }

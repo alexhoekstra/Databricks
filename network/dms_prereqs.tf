@@ -1,10 +1,8 @@
 # ==============================================================================
-# dms_prereqs.tf  (network root)
+# dms_prereqs.tf
 # AWS requires an account-level role named exactly `dms-vpc-role` (with the
 # AmazonDMSVPCManagementRole managed policy) before CreateReplicationSubnetGroup
-# succeeds. lakeflow_connect/aws/iam.tf creates the same role — flip
-# var.create_dms_vpc_role to false when that root is applied in this account.
-# time_sleep = the repo's standard IAM-propagation gate.
+# succeeds.
 # ==============================================================================
 
 data "aws_iam_policy_document" "dms_vpc_trust" {

@@ -1,9 +1,8 @@
 # ==============================================================================
-# security.tf  (databricks_vpc module)
+# security.tf
 # Three security groups:
 #   - workspace: the SG exported in security_group_ids — carries the documented
-#     Databricks customer-managed-VPC rules, spelled out per rule (this root
-#     exists to demonstrate them; a blanket all-egress would hide the point)
+#     Databricks customer-managed-VPC rules
 #   - endpoints: fronts the interface endpoints (443 from the VPC CIDR) so the
 #     exported workspace SG never needs mutating
 #   - dms: created with the DMS subnet group; carries no static ingress — the

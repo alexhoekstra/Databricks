@@ -1,5 +1,5 @@
 # ==============================================================================
-# locals.tf  (databricks_vpc module)
+# locals.tf
 # AZ selection + subnet math. newbits = 4 splits the VPC into 16 equal slots
 # (e.g. /20 -> /24s): slots 0..az_count-1 are private, 8..8+az_count-1 public.
 # ==============================================================================

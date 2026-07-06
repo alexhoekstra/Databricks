@@ -1,9 +1,9 @@
 # ==============================================================================
-# nat.tf  (databricks_vpc module)
+# nat.tf
 # Egress path for the private subnets: public route table -> IGW; private route
 # tables (always one per AZ) -> NAT gateway(s). With the default single NAT,
 # every private route table points at NAT [0]; nat_per_az = true gives each AZ
-# its own (the prod HA pattern) without changing the table topology.
+# its own without changing the table topology.
 # ==============================================================================
 
 resource "aws_eip" "nat" {

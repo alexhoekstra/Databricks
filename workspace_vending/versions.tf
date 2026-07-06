@@ -1,7 +1,7 @@
 # ==============================================================================
 # versions.tf
 #
-# No backend block on purpose: this root is validate-only
+# No backend block on purpose: this is validate-only (Free tier restricitons)
 # ==============================================================================
 
 terraform {

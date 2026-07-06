@@ -1,8 +1,7 @@
 # ==============================================================================
-# locals.tf  (network root)
-# Flattened peering wiring. Map keys derive only from config (peering keys,
-# allow-list indexes, range(az_count)) — never from resource ids, which are
-# unknown at plan time.
+# locals.tf
+# Peering wiring. Map keys derive only from config (peering keys,
+# allow-list indexes, range(az_count))
 # ==============================================================================
 
 locals {

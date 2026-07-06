@@ -1,11 +1,9 @@
 # ==============================================================================
-# outputs.tf  (network root)
-# `vpcs` is the headline: shaped field-for-field like workspace_vending's
-# var.workspaces[*].network
+# outputs.tf 
 # ==============================================================================
 
 output "vpcs" {
-  description = "Per-VPC network object — exactly the shape workspace_vending's workspaces map consumes."
+  description = "Per-VPC network object."
   value = {
     for name, mod in module.databricks_vpc : name => {
       vpc_id             = mod.vpc_id
@@ -16,7 +14,7 @@ output "vpcs" {
 }
 
 output "network_details" {
-  description = "Everything else, for evidence + debugging."
+  description = "Everything else, for debugging."
   value = {
     for name, mod in module.databricks_vpc : name => {
       vpc_cidr                        = mod.vpc_cidr

@@ -1,7 +1,6 @@
 # ==============================================================================
 # locals.tf
-# Per-workspace effective config: defaults coalesced once, so guard.tf and the
-# module call read the same resolved values.
+# Per-workspace effective config
 # ==============================================================================
 
 locals {

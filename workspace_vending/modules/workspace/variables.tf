@@ -101,8 +101,7 @@ variable "workspace_catalogs" {
   description = <<-EOT
     Catalogs to bind to this workspace. Consumed only by the documented
     catalog-binding stub in baseline.tf today — binding needs a workspace-level
-    provider, which can't be wired per for_each instance. Kept in the contract
-    so the intent survives into the follow-up root that would apply it.
+    provider, which can't be wired per for_each instance.
   EOT
   type        = list(string)
   default     = []

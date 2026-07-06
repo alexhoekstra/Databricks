@@ -4,26 +4,14 @@ New workspace = one map entry. Each entry in `var.workspaces` creates the AWS
 prerequisites (cross-account IAM role + root bucket) and the four account-level
 registrations (`databricks_mws_*`) that make a workspace.
 
-> **NOT Terraform applied — Free Edition.** Databricks Free Edition cannot create
+> **NOT Terraform applied** Databricks Free Edition cannot create
 > workspaces or authenticate to the account API
-> (`accounts.cloud.databricks.com`). This root is written, `terraform
-> validate`d, and documented; on a paid account with an account-admin service
-> principal (`DATABRICKS_CLIENT_ID` / `DATABRICKS_CLIENT_SECRET` in the
-> environment) it should work.
+> This root is written, `terraform validate`d, and documented; on a paid account 
+> with an account-admin service principal it should work.
 
 ## The model
 
-Every other root in this repo talks to a workspace (`DATABRICKS_HOST` /
-`DATABRICKS_TOKEN`). Workspace *creation* lives one level up, at the
-account, so this root establishes the account-level provider:
-
-```hcl
-provider "databricks" {
-  alias      = "account"
-  host       = "https://accounts.cloud.databricks.com"
-  account_id = var.databricks_account_id
-}
-```
+Every other root in this repo talks to a workspace. Workspace *creation* lives one level up, at the account, so this root establishes the account-level provider:
 
 One `modules/workspace` instance per map entry owns the full chain — AWS
 prerequisites are created in the module, so a workspace never depends on
@@ -91,13 +79,5 @@ workspaces = {
 | `custom_tags` | | `{}` |
 
 Root-level knobs: `databricks_account_id` (sensitive; doubles as the IAM
-`sts:ExternalId`), `aws_region` (default `us-east-2`), `resource_prefix`,
+`sts:ExternalId`), `aws_region`, `resource_prefix`,
 `admin_group_id`, `force_destroy_root_buckets`.
-
-## Free Edition notes — what breaks where
-
-| Step | Free Edition | Why |
-|---|---|---|
-| `terraform validate` | ✅ clean | no API calls at all |
-| `terraform plan` | ⚠️ needs AWS creds + some databricks auth to configure providers | the `databricks_aws_*` data sources are local-compute, so no *account* calls — but the provider still wants auth config |
-| `terraform apply` | ❌ fail | `mws_*` resources hit `accounts.cloud.databricks.com`, which Free Edition credentials cannot reach (401) |

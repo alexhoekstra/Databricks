@@ -1,7 +1,5 @@
 # ==============================================================================
-# outputs.tf  (databricks_vpc module)
-# vpc_id / private_subnet_ids / security_group_ids are the workspace_vending
-# network contract — keep the names exactly as they are.
+# outputs.tf
 # ==============================================================================
 
 output "vpc_id" {
@@ -15,7 +13,7 @@ output "vpc_cidr" {
 }
 
 output "private_subnet_ids" {
-  description = "Private subnet ids (one per AZ) — where Databricks clusters run."
+  description = "Private subnet ids (one per AZ)."
   value       = aws_subnet.private[*].id
 }
 
@@ -25,7 +23,7 @@ output "public_subnet_ids" {
 }
 
 output "security_group_ids" {
-  description = "Security groups for databricks_mws_networks (the workspace SG; contract allows 1..5)."
+  description = "Security groups for databricks_mws_networks."
   value       = [aws_security_group.workspace.id]
 }
 

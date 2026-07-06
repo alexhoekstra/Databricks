@@ -1,7 +1,6 @@
 # ==============================================================================
-# terraform.tfvars.example  (workspace_vending root)
+# terraform.tfvars.example
 # Copy to terraform.tfvars and edit. terraform.tfvars is gitignored
-# (**/*.tfvars) — it carries the account id.
 # ==============================================================================
 
 databricks_account_id = "00000000-0000-0000-0000-000000000000"
@@ -17,8 +16,7 @@ workspaces = {
     deployment_name = "acme-dev" # -> acme-dev.cloud.databricks.com
     custom_tags     = { env = "dev", owner = "platform" }
 
-    # Shaped like network/ module outputs (Project 3): 2 private subnets in
-    # different AZs + the Databricks security group.
+    # 2 private subnets in different AZs + the Databricks security group.
     network = {
       vpc_id             = "vpc-0aaa1111bbb22222c"
       private_subnet_ids = ["subnet-0dev1111aaaa1111a", "subnet-0dev2222bbbb2222b"]

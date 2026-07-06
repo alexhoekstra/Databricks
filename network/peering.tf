@@ -1,5 +1,5 @@
 # ==============================================================================
-# peering.tf  (network root)
+# peering.tf
 # The multi-VPC stitching: peering connection per var.peerings entry, routes
 # into both sides' private route tables, and the allow-list ingress rules.
 # Same account + region, so auto_accept completes the handshake in one apply.

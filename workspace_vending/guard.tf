@@ -1,6 +1,5 @@
 # ==============================================================================
 # guard.tf 
-# Cross-entry invariants the per-variable validations can't express.
 # ==============================================================================
 
 resource "terraform_data" "workspace_guard" {

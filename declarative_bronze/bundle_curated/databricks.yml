@@ -19,6 +19,14 @@ variables:
     lookup:
       pipeline: declarative_bronze
 
+  notification_email:
+    description: >-
+      Email for pipeline/job failure notifications. Must be a literal address:
+      in CI the deploy identity is a service principal, so
+      ${workspace.current_user.userName} resolves to its application-ID UUID,
+      which the Pipelines API rejects as an invalid email.
+    default: alex.hoekstra618@gmail.com
+
   bronze_source:
     description: >-
       catalog.schema the silver pipeline reads bronze tables from. The default

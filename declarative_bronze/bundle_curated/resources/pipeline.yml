@@ -34,6 +34,10 @@ resources:
         - notebook:
             path: ../src/transform_gold.py
       configuration:
+        # Cap production-mode automatic recovery (default retries far more):
+        # at most 2 retries of a failed update, 2 retries per failed flow.
+        pipelines.numUpdateRetryAttempts: "2"
+        pipelines.maxFlowRetryAttempts: "2"
         declarative_curated.source: ${var.bronze_source}
         # Gold reads silver-current snapshots from silver_source and publishes
         # aggregates cross-schema to gold_target. Both resolve to the dev-prefixed

@@ -93,10 +93,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.TF_STATE_REGION }}
-        # NOTE OIDC alternative — upcoming wire - GitHub↔AWS OIDC federation; then delete
-        # the access-key secrets above and use a role instead:
-        #   role-to-assume: ${{ vars.GOVERNANCE_APPLY_ROLE_ARN }}
-        #   aws-region: ${{ vars.TF_STATE_REGION }}
+        # NOTE OIDC alternative — now REAL: ci_oidc/ provisions the gha-terraform
+        # role and terraform.yml already authenticates this way. To migrate this
+        # workflow: add "governance" to ci_oidc's state_key_prefixes (re-apply),
+        # add `id-token: write` to this job's permissions, replace the two
+        # access-key lines above with:
+        #   role-to-assume: ${{ vars.GHA_TERRAFORM_ROLE_ARN }}
+        # then delete the AWS_* secrets (and the gha-governance-tf IAM user).
 
       - name: Terraform init (S3 backend from repo variables — never a committed backend.hcl)
         working-directory: governance

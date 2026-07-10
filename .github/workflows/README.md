@@ -1,26 +1,28 @@
 # GitHub Actions
 
-This folder contains the repository's GitHub Actions automation for continuous integration and deployment. The workflows help validate Python code, build distributable modules, and deploy Databricks resources.
+The repository's CI/CD: Terraform for platform resources, Databricks Asset
+Bundles (DAB) for workloads, both flowing through PR checks into gated prod
+deploys.
 
-## Contents
+## Workflows
 
-### `build_deply_module_wheels.yml`
-This workflow runs when changes are pushed to the main branch under the explorations/notebooks/modules path. It:
-- builds wheel files for each module that contains a pyproject.toml file
-- uploads the generated wheels to the Databricks Workspace under /Workspace/Shared/modules/<module_name> using the Databricks CLI. Secrets for the authentication are stored in Github
+| Workflow | Triggers | What it does |
+| --- | --- | --- |
+| [`terraform.yml`](terraform.yml) | PR + push to `main` on `declarative_bronze/{ingestion,modules,provisioning}/**` | Terraform CI for declarative_bronze: fmt/validate on every PR (forks included); a `terraform plan` against the S3 state posted as a sticky PR comment; `declarative-bronze-prod`-gated `terraform apply` on merge. AWS auth via OIDC. |
+| [`deploy_declarative_bronze.yml`](deploy_declarative_bronze.yml) | PR + push to `main` on `declarative_bronze/**` (minus `provisioning/`) | Bundle side of declarative_bronze: renders `pipeline.gen.yml`, `databricks bundle validate` + ruff on PR; `declarative-bronze-prod`-gated deploy of both bundles to prod on merge. |
+| [`governance_access.yml`](governance_access.yml) | PR + push to `main` on `governance/**` | Access-as-code: lints `access_matrix.json` + member CSVs, posts a sticky access-diff comment on PR; `governance-prod`-gated `terraform apply` on merge. |
+| [`deploy_dab_bundles.yml`](deploy_dab_bundles.yml) | push to `main` on `explorations/bundles/**` | Deploys the exploration bundles (`daily_capitals_weather`, `wc_bundle`) to prod via the Databricks CLI. |
+| [`build_deply_module_wheels.yml`](build_deply_module_wheels.yml) | push to `main` on `explorations/notebooks/modules/**`, manual | Builds a wheel per module with a `pyproject.toml` and uploads it to `/Workspace/Shared/modules/<module>`. |
+| [`pylint.yml`](pylint.yml) | every push | Repo-wide pylint gate (`--fail-under=8.0`). |
 
-This workflow is used to publish reusable Python modules for Databricks notebooks and jobs.
+## Required secrets, variables, environments
 
-### `deploy_dcw_bundle.yml`
-This workflow deploys the Databricks bundle located at `explorations/bundles/daily_capitals_weather` when changes are pushed to the main branch in that bundle's directory. It supports automated delivery of the daily_capitals_weather bundle.
-
-### `pylint.yml`
-This workflow runs on every push and validates Python code quality using pylint. It is intended to catch linting issues early in the development process.
-
-## Required repository secrets
-The deployment workflows rely on the following GitHub repository secrets:
-- DATABRICKS_HOST
-- DATABRICKS_CLIENT_ID
-- DATABRICKS_CLIENT_SECRET
-
-These values are used by the Databricks CLI during build and deployment steps.
+| Kind | Name | Used by |
+| --- | --- | --- |
+| secret | `DATABRICKS_HOST` / `DATABRICKS_CLIENT_ID` / `DATABRICKS_CLIENT_SECRET` | bundle workflows, `governance_access.yml`, `terraform.yml` |
+| secret | `DECLARATIVE_BRONZE_TFVARS` | `terraform.yml`, `deploy_declarative_bronze.yml` (prod tfvars, shape of `terraform.tfvars.example`) |
+| secret | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | `governance_access.yml` only (legacy static keys) |
+| variable | `TF_STATE_BUCKET` / `TF_STATE_REGION` | `governance_access.yml`, `terraform.yml` |
+| variable | `GHA_TERRAFORM_ROLE_ARN` | `terraform.yml` (output of `ci_oidc/`) |
+| environment | `governance-prod` | required-reviewer gate for governance applies |
+| environment | `declarative-bronze-prod` | required-reviewer gate for declarative_bronze Terraform applies **and** bundle deploys |

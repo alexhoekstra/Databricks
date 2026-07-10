@@ -1,7 +1,7 @@
 # ingestion — UC governance + pipeline generation
 
-The Terraform root for `declarative_bronze`. It owns **domain-level Unity Catalog
-governance** and generates the Lakeflow Declarative Pipeline resource
+The Terraform root for `declarative_bronze`. It owns domain-level Unity Catalog
+governance and generates the Lakeflow Declarative Pipeline resource
 that the DAB in [`../bundle`](../bundle) deploys.
 
 `terraform.tfvars` is the single source of truth: it drives both the UC objects
@@ -23,6 +23,17 @@ Databricks auth.
 | `notification_emails` | `[]` | Emails alerted on update/flow failure; empty omits the `notifications` block entirely. |
 | `grantee` | running identity | Principal for UC grants. |
 | `bundle_resources_dir` | `../bundle/resources` | Where `pipeline.gen.yml` is written. |
+
+## State & CI
+
+State lives in **S3** (`declarative_bronze/terraform.tfstate` in the shared
+state bucket).
+
+Two GitHub workflows cover this directory (see
+[`.github/workflows/README.md`](../../.github/workflows/README.md)):
+
+- **`terraform.yml`** — fmt/validate on every PR
+- **`deploy_declarative_bronze.yml`** — bundle validate/deploy
 
 ## Notes
 

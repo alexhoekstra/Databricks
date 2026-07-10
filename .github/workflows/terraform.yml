@@ -1,0 +1,206 @@
+# Terraform CI for the declarative_bronze roots
+name: terraform-declarative-bronze
+
+on:
+  pull_request:
+    paths:
+      - "declarative_bronze/ingestion/**"
+      - "declarative_bronze/modules/**"
+      - "declarative_bronze/provisioning/**"
+      - ".github/workflows/terraform.yml"
+  push:
+    branches: [main]
+    paths:
+      - "declarative_bronze/ingestion/**"
+      - "declarative_bronze/modules/**"
+      - "declarative_bronze/provisioning/**"
+      - ".github/workflows/terraform.yml"
+  workflow_dispatch:
+
+# Serialize runs so two applies can't overlap
+concurrency:
+  group: terraform-declarative-bronze
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  # Static checks — every PR
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.6"
+          terraform_wrapper: false
+
+      - name: Terraform fmt
+        working-directory: declarative_bronze
+        run: terraform fmt -check -recursive
+
+      - name: Terraform validate ingestion
+        working-directory: declarative_bronze/ingestion
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+
+      - name: Terraform validate provisioning
+        working-directory: declarative_bronze/provisioning
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+
+  plan:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write 
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.6"
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.GHA_TERRAFORM_ROLE_ARN }}
+          aws-region: ${{ vars.TF_STATE_REGION }}
+
+      - name: Materialize terraform.tfvars from secret
+        working-directory: declarative_bronze/ingestion
+        env:
+          TFVARS: ${{ secrets.DECLARATIVE_BRONZE_TFVARS }}
+        run: |
+          if [ -z "$TFVARS" ]; then
+            echo "::error::Secret DECLARATIVE_BRONZE_TFVARS is not set. Add the prod" \
+                 "sources config as a repo secret."
+            exit 1
+          fi
+          printf '%s' "$TFVARS" > terraform.tfvars
+
+      - name: Terraform init
+        working-directory: declarative_bronze/ingestion
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=declarative_bronze/terraform.tfstate" \
+            -backend-config="region=${{ vars.TF_STATE_REGION }}" \
+            -backend-config="use_lockfile=true" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform plan
+        working-directory: declarative_bronze/ingestion
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        run: |
+          set -o pipefail
+          terraform plan -input=false -lock=false -no-color 2>&1 | tee /tmp/plan.txt
+
+      - name: Post sticky plan comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- declarative-bronze-terraform-plan -->';
+            let plan = fs.readFileSync('/tmp/plan.txt', 'utf8');
+            const LIMIT = 60000;
+            if (plan.length > LIMIT) {
+              plan = '… (truncated — full plan in the workflow log)\n' + plan.slice(-LIMIT);
+            }
+            const body = [
+              marker,
+              '## Terraform plan — `declarative_bronze/ingestion`',
+              '',
+              '> `local_file.pipeline` always shows as created: it lives in shared',
+              '> state but writes to the runner\'s ephemeral disk. Cosmetic, not drift.',
+              '',
+              '<details><summary>Show plan</summary>',
+              '',
+              '```',
+              plan,
+              '```',
+              '',
+              '</details>',
+            ].join('\n');
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+  # Gated apply — on merge to main
+  apply:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: declarative-bronze-prod
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.6"
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.GHA_TERRAFORM_ROLE_ARN }}
+          aws-region: ${{ vars.TF_STATE_REGION }}
+
+      - name: Materialize terraform.tfvars from secret
+        working-directory: declarative_bronze/ingestion
+        env:
+          TFVARS: ${{ secrets.DECLARATIVE_BRONZE_TFVARS }}
+        run: |
+          if [ -z "$TFVARS" ]; then
+            echo "::error::Secret DECLARATIVE_BRONZE_TFVARS is not set. Add the prod" \
+                 "sources config as a repo secret."
+            exit 1
+          fi
+          printf '%s' "$TFVARS" > terraform.tfvars
+
+      - name: Terraform init
+        working-directory: declarative_bronze/ingestion
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=declarative_bronze/terraform.tfstate" \
+            -backend-config="region=${{ vars.TF_STATE_REGION }}" \
+            -backend-config="use_lockfile=true" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform apply
+        working-directory: declarative_bronze/ingestion
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        run: |
+          terraform plan -input=false -out=tfplan
+          terraform apply -input=false -auto-approve tfplan

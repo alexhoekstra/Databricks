@@ -1,15 +1,22 @@
-# GitHub Actions workflow for declarative_bronze.
+# Bundle CI/CD for declarative_bronze: validate on PR, deploy to prod on merge
 name: deploy-declarative-bronze
 
 on:
   push:
     branches: [main]
-    paths: ["declarative_bronze/**"]
+    paths:
+      - "declarative_bronze/**"
+      - "!declarative_bronze/provisioning/**" 
   pull_request:
-    paths: ["declarative_bronze/**"]
-  workflow_dispatch: # manual "Run workflow" button
+    paths:
+      - "declarative_bronze/**"
+      - "!declarative_bronze/provisioning/**"
+  workflow_dispatch:
 
-# Serialize runs so two deploys can't overlap (never cancel an in-flight deploy).
+permissions:
+  contents: read
+
+# Serialize runs so two deploys can't overlap.
 concurrency:
   group: deploy-declarative-bronze
   cancel-in-progress: false
@@ -20,21 +27,14 @@ defaults:
 
 env:
   TF_IN_AUTOMATION: "true"
-  # Pin the Databricks CLI for reproducible CI (bump deliberately). Matches the
-  # version validated locally against these bundles.
   DATABRICKS_CLI_VERSION: "1.4.0"
 
 jobs:
-  # ===========================================================================
-  # PR gate — static, no secrets, no cloud.
-  # ===========================================================================
+  # PR gate 
   validate:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     env:
-      # `databricks bundle validate -t dev` resolves current_user (development
-      # mode), so it needs auth. Same-repo branch PRs get these secrets; the
-      # terraform + ruff steps below run fine without them (fork PRs).
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
@@ -44,23 +44,15 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
+          terraform_version: "1.15.6"
           terraform_wrapper: false
-
-      - name: Terraform fmt (declarative_bronze)
-        working-directory: declarative_bronze/ingestion
-        run: terraform fmt -check -recursive ..
-
-      - name: Terraform validate (ingestion)
-        working-directory: declarative_bronze/ingestion
-        run: |
-          terraform init -backend=false -input=false
-          terraform validate
 
       - name: Render pipeline.gen.yml from the example config
         working-directory: declarative_bronze/ingestion
         run: |
           cp terraform.tfvars.example terraform.tfvars
-          # Regenerate ONLY the resource file — no cloud, no auth (see header).
+          printf 'terraform {\n  backend "local" {}\n}\n' > backend_override.tf
+          terraform init -input=false
           terraform apply -auto-approve -input=false -target=local_file.pipeline
           test -f ../bundle/resources/pipeline.gen.yml
           echo "----- generated pipeline.gen.yml -----"
@@ -76,10 +68,8 @@ jobs:
         working-directory: declarative_bronze/bundle
         run: databricks bundle validate -t dev
 
-      - name: Databricks bundle validate (curated)
+      - name: Databricks bundle validate
         working-directory: declarative_bronze/bundle_curated
-        # bronze_pipeline_id is a lookup resolved at deploy time; override with a
-        # placeholder so structural validation doesn't require the pipeline to exist.
         run: databricks bundle validate -t dev --var="bronze_pipeline_id=0"
 
       - name: Set up Python
@@ -92,18 +82,11 @@ jobs:
           pip install ruff
           ruff check declarative_bronze/bundle/src/ declarative_bronze/bundle_curated/src/
 
-  # ===========================================================================
-  # Deploy — on merge to main (or manual dispatch). Regenerates the resource
-  # file from the REAL config (secret tfvars), then deploys BOTH bundles to prod
-  # (bronze first so the curated bundle's pipeline lookup resolves).
-  #
-  # NOTE: Terraform state is local, so CI does NOT `terraform apply` the UC
-  # resources — it only regenerates the bronze resource file and deploys bundles.
-  # The curated bundle is fully hand-authored: no Terraform step touches it.
-  # ===========================================================================
+  # Deploy — on merge to main
   deploy:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    environment: declarative-bronze-prod
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
@@ -114,6 +97,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
+          terraform_version: "1.15.6"
           terraform_wrapper: false
 
       - name: Materialize terraform.tfvars from secret
@@ -123,7 +107,7 @@ jobs:
         run: |
           if [ -z "$TFVARS" ]; then
             echo "::error::Secret DECLARATIVE_BRONZE_TFVARS is not set. Add the prod" \
-                 "sources config (same shape as terraform.tfvars.example) as a repo secret."
+                 "sources config as a repo secret."
             exit 1
           fi
           printf '%s' "$TFVARS" > terraform.tfvars
@@ -131,17 +115,18 @@ jobs:
       - name: Regenerate pipeline.gen.yml from prod config
         working-directory: declarative_bronze/ingestion
         run: |
-          terraform init -backend=false -input=false
+          printf 'terraform {\n  backend "local" {}\n}\n' > backend_override.tf
+          terraform init -input=false
           terraform apply -auto-approve -input=false -target=local_file.pipeline
           test -f ../bundle/resources/pipeline.gen.yml
 
       - name: Install Databricks CLI
         run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh -s -- --version "$DATABRICKS_CLI_VERSION"
 
-      - name: Deploy bronze bundle (prod)
+      - name: Deploy bronze bundle
         working-directory: declarative_bronze/bundle
         run: databricks bundle deploy --target prod
 
-      - name: Deploy curated bundle (prod)
+      - name: Deploy curated bundle
         working-directory: declarative_bronze/bundle_curated
         run: databricks bundle deploy --target prod

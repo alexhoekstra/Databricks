@@ -8,7 +8,9 @@ target_schema  = "declarative_bronze"
 
 continuous = false
 
-# grantee = "you@example.com"   # optional; defaults to the running identity
+# grantee = "you@example.com"   # optional; defaults to the running identity.
+# SET THIS when applying from CI: there the running identity is the deploy
+# service principal, so leaving it unset flips the grants away from your user.
 
 # Optional discovery allow/deny filter (comma-free lists of file stems):
 # include_tables = ["programs", "contracts"]   # ingest only these

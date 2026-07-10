@@ -85,7 +85,7 @@ resources:
           }
       notifications:
         - email_recipients:
-            - ${workspace.current_user.userName}
+            - ${var.notification_email}
           alerts:
             - on-update-failure
             - on-update-fatal-failure
@@ -102,7 +102,7 @@ resources:
         timezone_id: UTC
       email_notifications:
         on_failure:
-          - ${workspace.current_user.userName}
+          - ${var.notification_email}
       tasks:
         - task_key: bronze_update
           pipeline_task:

@@ -23,6 +23,10 @@ resources:
         "declarative_bronze.fail_on_empty": "${fail_on_empty}"
         "declarative_bronze.include_tables": "${include_tables}"
         "declarative_bronze.exclude_tables": "${exclude_tables}"
+        # Cap production-mode automatic recovery (default retries far more):
+        # at most 2 retries of a failed update, 2 retries per failed flow.
+        "pipelines.numUpdateRetryAttempts": "2"
+        "pipelines.maxFlowRetryAttempts": "2"
 %{ if length(notification_emails) > 0 ~}
       notifications:
         - email_recipients:

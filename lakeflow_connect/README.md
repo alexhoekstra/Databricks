@@ -60,13 +60,6 @@ Ownership: **Terraform** owns UC governance (credential, location, federation);
 the **DAB** owns the wheel build, bronze schema, checkpoint volume, and ingestion
 job; **pre-existing** per domain is the bucket + IAM role.
 
-## Cloud-pluggable
-
-Each domain declares a `source_infrastructure` with a `type` discriminator. Only
-`type = "aws"` is implemented today; adding `azure`/`gcp` later means one new
-credential auth block + one storage-URI map entry in `modules/domain_ingest`. Some minor edits may need to be made to the terraform structure, but the
-domain interface and the DAB stay unchanged.
-
 ## Deploy
 
 ```bash
@@ -94,5 +87,4 @@ deploys, so **Terraform first, then the bundle**.
 
 Add an entry to `domains` in `ingestion/terraform.tfvars` (with the domain's
 pre-existing `role_arn`/`bucket`/`prefix`, and a `federation` block only for
-queryable DBs), then `terraform apply` + `databricks bundle deploy`. No new
-Terraform resources to write. This provides a path for CI/CD Automation, while remaining flexible for developement.
+queryable DBs), then `terraform apply` + `databricks bundle deploy`.

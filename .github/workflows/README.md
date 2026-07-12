@@ -23,6 +23,5 @@ deploys.
 | secret | `DECLARATIVE_BRONZE_TFVARS` | `terraform.yml`, `deploy_declarative_bronze.yml` (prod tfvars, shape of `terraform.tfvars.example`) |
 | secret | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | `governance_access.yml` only (legacy static keys) |
 | variable | `TF_STATE_BUCKET` / `TF_STATE_REGION` | `governance_access.yml`, `terraform.yml` |
-| variable | `GHA_TERRAFORM_ROLE_ARN` | `terraform.yml` (output of `ci_oidc/`) |
 | environment | `governance-prod` | required-reviewer gate for governance applies |
 | environment | `declarative-bronze-prod` | required-reviewer gate for declarative_bronze Terraform applies **and** bundle deploys |

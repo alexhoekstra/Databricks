@@ -1,38 +1,10 @@
-# ==============================================================================
 # dms.tf
-# AWS DMS CDC pipeline: RDS MySQL → S3 (Parquet)
-# IAM roles referenced here are defined in iam.tf.
-#
-# Flow:
-#   RDS MySQL (binlog ON via rds.tf parameter group)
-#     └── DMS Replication Instance
-#           ├── Source endpoint → RDS MySQL
-#           └── Target endpoint → S3 (Parquet, partitioned by date)
-#                 └── s3://<bucket>/dms-cdc/mydb/<table>/YYYY/MM/DD/*.parquet
-#
-# DMS migration type = full-load-and-cdc:
-#   Phase 1: full load — snapshots all existing rows to S3
-#   Phase 2: CDC      — streams binlog change events (Op: I/U/D) continuously
-#
-# After terraform apply:
-#   Start the task manually (Terraform does not auto-start replication tasks):
-#     aws dms start-replication-task \
-#       --replication-task-arn <dms_task_arn output> \
-#       --start-replication-task-type start-replication
-#
-#   To force a fresh full load after the task has previously run:
-#     aws dms start-replication-task \
-#       --replication-task-arn <dms_task_arn output> \
-#       --start-replication-task-type reload-target
-#
-# Cost: dms.t3.small ~$0.04/hr. Stop the task when not demoing.
-# ==============================================================================
+# This uses AWS Database Migration Service (DMS)
+# IAM roles referenced here are defined in iam.tf
 
-# ==============================================================================
+
 # REPLICATION INSTANCE
-# Waits for both DMS service roles to propagate before creation.
-# ==============================================================================
-
+# Waits for both DMS service roles to propagate before creation (ran into issues with propagation).
 resource "aws_dms_replication_instance" "main" {
   replication_instance_id    = "hr-cdc-replication"
   replication_instance_class = "dms.t3.small"
@@ -47,10 +19,7 @@ resource "aws_dms_replication_instance" "main" {
   ]
 }
 
-# ==============================================================================
-# SOURCE ENDPOINT — RDS MySQL
-# ==============================================================================
-
+# SOURCE ENDPOINT — Relational Database Source (defined in rds.tf)
 resource "aws_dms_endpoint" "rds_source" {
   endpoint_id   = "hr-rds-source"
   endpoint_type = "source"
@@ -62,16 +31,13 @@ resource "aws_dms_endpoint" "rds_source" {
   username      = aws_db_instance.default.username
   password      = aws_db_instance.default.password
 
-  # eventsPollInterval: how often DMS polls the binlog (seconds)
+  # eventsPollInterval: how often DMS polls the binlog (seconds). If not set, it doesn't poll at all
   extra_connection_attributes = "eventsPollInterval=5;"
 }
 
-# ==============================================================================
-# TARGET ENDPOINT — S3 (Parquet)
-# Uses aws_dms_s3_endpoint (required for AWS provider v6+).
-# s3_settings block was removed in provider v6.
-# ==============================================================================
-
+# TARGET ENDPOINT — S3 (Parquet files are place in the bucket defined in rds.tf)
+# You could ostensibly point it to your orgs bucket, or if they are already doing this, setup policies
+# so you can access it
 resource "aws_dms_s3_endpoint" "s3_target" {
   endpoint_id             = "hr-s3-target"
   endpoint_type           = "target"
@@ -90,16 +56,12 @@ resource "aws_dms_s3_endpoint" "s3_target" {
   date_partition_sequence = "YYYYMMDD"
 
   compression_type       = "GZIP"
-  cdc_max_batch_interval = 60      # flush to S3 every 60 seconds
-  cdc_min_file_size      = 32000   # or when file reaches 32MB
+  cdc_max_batch_interval = 60
+  cdc_min_file_size      = 32000
 }
 
-# ==============================================================================
 # REPLICATION TASK
 # Replicates all tables in the mydb schema.
-# Add transformation rules to rename or exclude specific tables.
-# ==============================================================================
-
 resource "aws_dms_replication_task" "hr_cdc" {
   replication_task_id      = "hr-mysql-to-s3-cdc"
   replication_instance_arn = aws_dms_replication_instance.main.replication_instance_arn

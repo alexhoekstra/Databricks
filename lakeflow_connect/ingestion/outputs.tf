@@ -1,7 +1,4 @@
-# ==============================================================================
-# outputs.tf  (ingestion root)
-# Per-domain summaries, keyed by domain name.
-# ==============================================================================
+# outputs.tf
 
 output "domains" {
   description = "Per-domain UC objects + generated job file, keyed by domain."

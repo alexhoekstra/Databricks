@@ -31,22 +31,6 @@ wheel. They come from the domain's entry in the ingestion root's
 | `target_schema` | `${resources.schemas.<domain>_schema.name}` | Resolves to the deployed (dev-prefixed) schema name |
 | `checkpoint_base` | `/Volumes/<catalog>/<schema>/_checkpoints` | UC managed volume under the schema, built from resource references (omitted → wheel default) |
 
-## Deploy
-
-```bash
-# 1. Terraform first — creates UC governance + generates resources/*.gen.yml
-cd ../../ingestion
-terraform apply
-
-# 2. Deploy the bundle (builds the wheel, creates schemas + jobs)
-cd ../bundles/lakeflow_connect
-databricks bundle validate
-databricks bundle deploy -t dev
-
-# 3. Run a domain's ingestion (e.g. hr)
-databricks bundle run hr_cdc_ingest -t dev
-```
-
 ## Prerequisites
 
 - `DATABRICKS_HOST` / `DATABRICKS_TOKEN` (or a configured CLI profile) for the

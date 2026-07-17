@@ -1,18 +1,16 @@
-# ==============================================================================
 # storage_credential.tf
-# Per-domain UC storage credential. The auth block is cloud-specific and chosen
-# by source_infrastructure.type via a dynamic block — add azure_managed_identity
-# / GCP variants here to support new clouds.
-#
-# The referenced IAM role is pre-existing (created by the domain's landing infra,
-# e.g. the aws/ example). Its trust must already be self-assuming, so the
-# credential validates immediately. See aws/iam.tf in the worked example.
-# ==============================================================================
 
+# Per-domain UC storage credential that Databricks needs to access the storage root of a domain's data. 
+# This credential is used by the ingestion job to read source data from the external location.
+
+# Note: The referenced IAM must be pre-existing (created by the domain's landing infra,
+# see aws/ for my example). Its trust must also be self-assuming, so the
+# credential validates immediately or Databricks wont be able to connect.
 resource "databricks_storage_credential" "this" {
   name    = local.credential_name
   comment = "Managed by Terraform — ${var.domain} (${local.infra.type})"
 
+  # This is the block for the AWS role, I'd probably want to change up above to a for each instead.
   dynamic "aws_iam_role" {
     for_each = local.infra.type == "aws" ? [1] : []
     content {

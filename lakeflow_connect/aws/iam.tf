@@ -1,51 +1,11 @@
-# ==============================================================================
 # iam.tf
-# All IAM — roles, policies, trust documents, and attachments.
-# Centralised here so permission debugging has a single file to check.
-#
-# Roles provisioned:
-#   databricks-external-data-access — Databricks cross-account S3 access
-#   dms-s3-access-role              — DMS write access to S3
-#   dms-vpc-role                    — required one-time DMS account setup
-#   dms-cloudwatch-logs-role        — DMS CloudWatch logging
-# ==============================================================================
 
-# ==============================================================================
-# SHARED TRUST DOCUMENT — DMS service principal
-# Reused by all three DMS roles below.
-# ==============================================================================
-
-data "aws_iam_policy_document" "dms_trust" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["dms.amazonaws.com"]
-    }
-  }
-}
-
-# ==============================================================================
-# DATABRICKS CROSS-ACCOUNT ROLE
-# Assumed by Databricks Unity Catalog to read/write S3.
+# Databricks Trust Policy. 
+# (This is the part that the org would need to add to allow your databricks access)
 #
 # Two-statement trust policy:
 #   DatabricksAssume — allows Databricks' AWS control plane to assume this role
 #   SelfAssume       — allows the role to assume itself (required by UC validation)
-#
-# Both statements apply in a single `terraform apply`. The SelfAssume statement
-# does NOT name the role's own ARN as a principal (IAM rejects principal ARNs
-# that don't exist yet — the old chicken-and-egg). Instead its principal is the
-# account root, which always exists, and it is narrowed to this one role via an
-# aws:PrincipalArn condition. Conditions are string matches and are not validated
-# against existing principals, so no comment-out / re-apply is needed.
-# This mirrors the pattern in the Databricks Unity Catalog setup docs.
-#
-# IMPORTANT: because SelfAssume's principal is the account root, AWS delegates
-# the self-assume decision to the role's IDENTITY policy. UC's "self-assuming
-# role" check therefore only passes if the role is ALSO granted sts:AssumeRole
-# on its own ARN — see the SelfAssumeRole statement in databricks_s3 below.
-# ==============================================================================
 
 data "aws_iam_policy_document" "databricks_trust" {
   statement {
@@ -83,11 +43,13 @@ data "aws_iam_policy_document" "databricks_trust" {
   }
 }
 
+# IAM Role for Databricks External Data Access (Federation stuff)
 resource "aws_iam_role" "databricks_access" {
   name               = "databricks-external-data-access"
   assume_role_policy = data.aws_iam_policy_document.databricks_trust.json
 }
 
+# IAM Policy Document for Databricks External Data Access (Federation Stuff)
 data "aws_iam_policy_document" "databricks_s3" {
   statement {
     sid    = "S3BucketAccess"
@@ -103,13 +65,6 @@ data "aws_iam_policy_document" "databricks_s3" {
       "${aws_s3_bucket.main.arn}/*",
     ]
   }
-
-  # Required for Unity Catalog's "self-assuming role" check. The trust policy
-  # above names the account root as principal (to avoid the first-apply
-  # chicken-and-egg), so AWS delegates the self-assume decision to this
-  # identity policy — the role can only assume itself if it is also granted
-  # sts:AssumeRole on its own ARN here. Referencing the constructed role ARN as
-  # a Resource (not a principal) does not reintroduce the chicken-and-egg.
   statement {
     sid       = "SelfAssumeRole"
     effect    = "Allow"
@@ -118,20 +73,38 @@ data "aws_iam_policy_document" "databricks_s3" {
   }
 }
 
+# IAM Policy for Databricks S3 Access (Allow access to parquet files)
 resource "aws_iam_policy" "databricks_s3" {
   name   = "databricks-s3-access-policy"
   policy = data.aws_iam_policy_document.databricks_s3.json
 }
 
+# Attach policy to role
 resource "aws_iam_role_policy_attachment" "databricks_s3" {
   role       = aws_iam_role.databricks_access.name
   policy_arn = aws_iam_policy.databricks_s3.arn
 }
 
-# ==============================================================================
-# DMS S3 ROLE
+
+#######################################################
+# Everything Below is likely already setup by the Org
+######################################################
+
+# SHARED TRUST DOCUMENT — DMS service principal
+# Reused by all three DMS roles below.
+
+data "aws_iam_policy_document" "dms_trust" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["dms.amazonaws.com"]
+    }
+  }
+}
+
+# DMS S3 role (Org would likely already do this themselves)
 # Allows the DMS replication task to write Parquet CDC files to S3.
-# ==============================================================================
 
 resource "aws_iam_role" "dms_s3" {
   name               = "dms-s3-access-role"
@@ -162,12 +135,9 @@ resource "aws_iam_role_policy" "dms_s3" {
   policy = data.aws_iam_policy_document.dms_s3.json
 }
 
-# ==============================================================================
-# DMS VPC ROLE
-# Required one-time account-level setup for DMS.
-# AWS looks for this role by its exact name — do not rename it.
-# ==============================================================================
 
+# DMS VPC role (Org would likely already do this themselves)
+# Required one-time account-level setup for DMS.
 resource "aws_iam_role" "dms_vpc" {
   name               = "dms-vpc-role"
   assume_role_policy = data.aws_iam_policy_document.dms_trust.json
@@ -178,18 +148,15 @@ resource "aws_iam_role_policy_attachment" "dms_vpc" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole"
 }
 
-# Wait for IAM propagation before DMS tries to use this role
+# Wait for IAM propagation before DMS tries to use this role 
 resource "time_sleep" "dms_vpc_propagation" {
   create_duration = "15s"
   depends_on      = [aws_iam_role_policy_attachment.dms_vpc]
 }
 
-# ==============================================================================
-# DMS CLOUDWATCH ROLE
+# DMS CLOUDWATCH role (Org would likely already do this themselves)
 # Allows DMS to publish task logs to CloudWatch.
 # AWS looks for this role by its exact name — do not rename it.
-# ==============================================================================
-
 resource "aws_iam_role" "dms_cloudwatch" {
   name               = "dms-cloudwatch-logs-role"
   assume_role_policy = data.aws_iam_policy_document.dms_trust.json

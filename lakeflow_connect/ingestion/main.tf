@@ -1,16 +1,9 @@
-# ==============================================================================
-# main.tf  (ingestion root)
-# Configuration-driven, per-domain Unity Catalog wiring for the lakeflow_connect
-# pipeline. One module instance per external-system "domain" in var.domains.
-#
-# This root owns NO AWS resources and needs no AWS provider — each domain's
-# landing infra (bucket + IAM role) is pre-existing (see ../aws for the worked
-# example). The module creates the per-domain UC storage credential + external
-# location + optional federation, and generates the DAB job resource file.
-#
-# Apply order: this root first (creates UC governance + generates job ymls), then
-# `databricks bundle deploy` in lakeflow_connect/bundles/lakeflow_connect.
-# ==============================================================================
+# main.tf
+
+# Configuration-driven, per-domain Unity Catalog wiring. Most of the logic is in the reusable module (/modules/domain_ingest). 
+# By keeping this project light and the module heavy, you would have reusable logic in the module that can easily be versioned 
+# and re-used across multiple projects. Also you can lock down implementations that wont break production etc. 
+
 
 terraform {
   required_providers {
@@ -23,11 +16,10 @@ terraform {
   }
 }
 
-# Authenticates from environment variables:
-#   export DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
-#   export DATABRICKS_TOKEN=dapi...
 provider "databricks" {}
 
+# This is the domain-specific Unity Catalog wiring for the lakeflow_connect pipeline. 
+# One module instance per external-system "domain" in var.domains.
 module "domain_ingest" {
   for_each = var.domains
   source   = "../modules/domain_ingest"

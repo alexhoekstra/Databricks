@@ -1,6 +1,4 @@
-# ==============================================================================
 # outputs.tf
-# ==============================================================================
 
 output "storage_credential_name" {
   value       = databricks_storage_credential.this.name
@@ -19,17 +17,17 @@ output "external_location_url" {
 
 output "foreign_catalog" {
   value       = local.federation_enabled ? databricks_catalog.foreign[0].name : null
-  description = "Federated catalog name (null when federation is disabled for this domain)."
+  description = "Federated catalog name."
 }
 
 output "bronze_schema" {
   value       = "${var.target_catalog}.${local.target_schema}"
-  description = "Fully-qualified bronze schema the DAB job writes to (schema itself is DAB-owned)."
+  description = "Fully-qualified bronze schema the DAB job writes to."
 }
 
 output "source_path" {
   value       = local.source_path
-  description = "Resolved source URI passed to the ingestion job."
+  description = "Source URI passed to the ingestion job."
 }
 
 output "job_resource_file" {

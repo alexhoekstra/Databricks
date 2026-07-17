@@ -1,10 +1,7 @@
-# ==============================================================================
 # federation.tf
-# OPTIONAL per domain. Created only when var.federation is set (queryable DB
-# sources). Mirrors the source database as a read-only foreign catalog via
-# Lakehouse Federation — query live without ETL. Non-DB domains skip all of this.
-# ==============================================================================
 
+# Created only when var.federation is set. This mirrors the source database as a 
+# read-only foreign catalog via Lakehouse Federation
 resource "databricks_connection" "this" {
   count           = local.federation_enabled ? 1 : 0
   name            = local.connection_name
@@ -34,6 +31,6 @@ resource "databricks_grants" "foreign" {
 
   grant {
     principal  = var.grantee
-    privileges = ["USE_CATALOG", "USE_SCHEMA", "SELECT"]
+    privileges = ["USE_CATALOG", "USE_SCHEMA", "SELECT"] # This should be good perms for it to READ ONLY
   }
 }

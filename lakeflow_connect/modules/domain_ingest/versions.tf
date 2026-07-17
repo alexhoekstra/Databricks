@@ -1,10 +1,7 @@
-# ==============================================================================
 # versions.tf
-# Provider requirements for the domain_ingest module. The module configures no
-# providers itself — the root passes in a configured `databricks` provider.
-# `local` is used to render the per-domain DAB job resource file.
-# ==============================================================================
 
+# Configure the required providers.  Currently uses latest but would
+# be best to lock it to specific version
 terraform {
   required_providers {
     databricks = {

@@ -1,18 +1,9 @@
-# ingestion/ — per-domain UC governance (Terraform root)
+# ingestion/ — per-domain UC governance
 
 The configuration-driven entry point for the `lakeflow_connect` pipeline. It
 instantiates one [`../modules/domain_ingest`](../modules/domain_ingest) per
-domain via `for_each = var.domains` and, as a side effect, generates the DAB job
+domain via `for_each = var.domains` and gnerates the DAB job
 resource files the bundle deploys.
-
-each domain's landing infra is assumed to already exist (see [`../aws`](../aws)
-for a worked example). It authenticates to Databricks from environment variables
-but can just as easily be converted to use a secrets manaager (e.g. Vault)
-
-```bash
-export DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
-export DATABRICKS_TOKEN=dapi...
-```
 
 ## Single Source of Truth - Configuration Driven Ingestion
 
@@ -35,17 +26,6 @@ Each entry (see `variables.tf` for the full shape):
 `terraform output domains` — a per-domain summary: storage credential, external
 location (+ url), federated catalog (or null), bronze schema, resolved source
 path, and the path of the generated job resource file.
-
-## Apply order
-
-```bash
-terraform init
-terraform apply        # creates UC governance + writes ../bundles/lakeflow_connect/resources/<domain>.gen.yml
-cd ../bundles/lakeflow_connect && databricks bundle deploy -t dev
-```
-
-**Terraform first, then the bundle** — the bundle deploys the `*.gen.yml` files
-this root generates.
 
 ## Adding a domain
 

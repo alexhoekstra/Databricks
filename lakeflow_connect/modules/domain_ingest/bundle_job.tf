@@ -1,12 +1,6 @@
-# ==============================================================================
 # bundle_job.tf
-# TF → DAB bridge. Renders the per-domain ingestion job as a bundle resource file
-# the DAB includes. Keeps terraform.tfvars the single source of truth for domains
-# while letting the DAB own/deploy the job. The cloud-specific URI is already
-# resolved here (local.source_path), so the generated job — and the DAB — stay
-# cloud-agnostic. Generated files are gitignored; do not edit them by hand.
-# ==============================================================================
 
+# creates the per-domain ingestion job as a bundle resource file for the DAB from a template.
 resource "local_file" "job" {
   filename = "${path.root}/${var.bundle_resources_dir}/${var.domain}.gen.yml"
 

@@ -4,9 +4,6 @@ Configuration-driven Auto Loader ingestion of **DMS CDC Parquet files** into
 **Unity Catalog bronze Delta tables**. Packaged as a Python wheel so it can be
 deployed and run as a module by a Databricks Asset Bundle (`python_wheel_task`).
 
-This is the wheel form of the former `autoloader_cdc_bronze.py` notebook from the
-`lakeflow_connect` pipeline.
-
 ## What it does
 
 DMS writes CDC events to S3 as Parquet under

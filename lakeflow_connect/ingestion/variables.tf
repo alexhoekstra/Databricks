@@ -1,15 +1,9 @@
-# ==============================================================================
-# variables.tf  (ingestion root)
-# ==============================================================================
+# variables.tf 
 
 variable "domains" {
   description = <<-EOT
     Map of domain (external-system) name -> configuration. This is the single
     source of truth for which domains exist and how each is ingested.
-
-    NOTE: not marked sensitive because it is used as a for_each key set
-    (Terraform forbids sensitive for_each). Keep terraform.tfvars gitignored;
-    the federation password is marked sensitive inside the module.
   EOT
 
   type = map(object({
